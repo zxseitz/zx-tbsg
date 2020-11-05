@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+## hidden configs
+mongo.properties
