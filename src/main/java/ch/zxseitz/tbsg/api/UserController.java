@@ -1,6 +1,7 @@
 package ch.zxseitz.tbsg.api;
 
-import ch.zxseitz.tbsg.dao.DataAccessObject;
+import ch.zxseitz.tbsg.dao.UserAccessObject;
+import ch.zxseitz.tbsg.exceptions.NotFoundException;
 import ch.zxseitz.tbsg.model.User;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,39 +10,40 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("api/v1/user")
 @RestController
+@RequestMapping("api/v1/user")
 public class UserController {
-    private final DataAccessObject<User> userDao;
+    private final UserAccessObject userAccessObject;
 
     @Autowired
-    public UserController(@Qualifier("mongodb") DataAccessObject<User> userDao) {
-        this.userDao = userDao;
+    public UserController(@Qualifier("mongodb") UserAccessObject userAccessObject) {
+        this.userAccessObject = userAccessObject;
     }
 
     @PostMapping
     public void addUser(@RequestBody User user) {
-        // todo hash password
-        userDao.insert(user);
+        //  password must be hashed!
+        userAccessObject.insert(user);
     }
 
     @GetMapping
     public List<User> getAllUsers() {
-        return userDao.getAll();
+        return userAccessObject.getAll();
     }
 
     @GetMapping(path = "{id}")
     public User getUser(@PathVariable("id") ObjectId id) {
-        return userDao.get(id);
+        return userAccessObject.get(id)
+                .orElseThrow(() -> new NotFoundException(String.format("No user found with id %s", id)));
     }
 
     @PutMapping(path = "{id}")
     public void updateUser(@PathVariable("id") ObjectId id, @RequestBody User user) {
-        userDao.update(id, user);
+
     }
 
     @DeleteMapping(path = "{id}")
     public void updateUser(@PathVariable("id") ObjectId id) {
-        userDao.delete(id);
+
     }
 }
