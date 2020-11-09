@@ -12,10 +12,11 @@ import java.util.List;
 public class User {
     @Id
     public final ObjectId id;
-    private String username;
-    private String email;
-    private String password;  // hashed
-    private List<String> roles;
+
+    private final String username;
+    private final String email;
+    private final String password;  // hashed
+    private final List<String> roles;
 
     public User(ObjectId id, String username, String email, String password, Collection<String> roles) {
         this.id = id;

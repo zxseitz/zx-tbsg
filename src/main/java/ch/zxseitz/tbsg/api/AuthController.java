@@ -5,13 +5,13 @@ import ch.zxseitz.tbsg.model.Role;
 import ch.zxseitz.tbsg.model.User;
 import ch.zxseitz.tbsg.model.request.LoginRequest;
 import ch.zxseitz.tbsg.model.request.RegisterRequest;
+import ch.zxseitz.tbsg.security.JwtUtils;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +29,9 @@ public class AuthController {
 
     @Autowired
     PasswordEncoder encoder;
+
+    @Autowired
+    JwtUtils jwtUtils;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
@@ -48,7 +51,12 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return ResponseEntity.status(200).build();
+        // todo attach user to authentication object
+        var user = userAccessObject.getByUsername(loginRequest.getUsername());
+        if (user.isPresent()) {
+            var jwt = jwtUtils.createJwt(user.get());
+            return ResponseEntity.status(200).body(jwt);
+        }
+        return ResponseEntity.status(400).build();
     }
 }
