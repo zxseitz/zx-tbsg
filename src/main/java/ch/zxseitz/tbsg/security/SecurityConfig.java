@@ -1,8 +1,10 @@
 package ch.zxseitz.tbsg.security;
 
+import ch.zxseitz.tbsg.model.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -46,8 +48,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable().authorizeRequests()
+                .regexMatchers(HttpMethod.GET, "/api/v1/user/(\\w+)").hasAnyAuthority(Role.User, Role.Admin)
+                .antMatchers("/api/v1/user/**").hasAuthority(Role.Admin)
                 .antMatchers("/api/v1/auth/**").permitAll()
-                .anyRequest().authenticated()
+                .antMatchers("/api/v1/**").authenticated()
+                .antMatchers("/static").permitAll()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }
