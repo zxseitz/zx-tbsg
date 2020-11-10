@@ -1,15 +1,15 @@
 package ch.zxseitz.tbsg.security;
 
 import ch.zxseitz.tbsg.model.User;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public class UserDetailsImpl implements UserDetails {
     private final String username;
@@ -58,10 +58,9 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public static UserDetailsImpl create(User user) {
-        var userDetails = new UserDetailsImpl(user.getUsername(), user.getPassword(),
+        return new UserDetailsImpl(user.getUsername(), user.getPassword(),
                 user.getRoles().stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList()));
-        return userDetails;
     }
 }

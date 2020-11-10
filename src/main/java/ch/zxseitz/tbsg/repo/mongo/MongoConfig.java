@@ -1,4 +1,4 @@
-package ch.zxseitz.tbsg.config;
+package ch.zxseitz.tbsg.repo.mongo;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;

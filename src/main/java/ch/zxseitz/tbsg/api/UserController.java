@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.api;
 
-import ch.zxseitz.tbsg.dao.UserAccessObject;
+import ch.zxseitz.tbsg.repo.IUserRepository;
 import ch.zxseitz.tbsg.model.Role;
 import ch.zxseitz.tbsg.model.User;
 import org.bson.types.ObjectId;
@@ -14,22 +14,22 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/v1/user")
 public class UserController {
-    private final UserAccessObject userAccessObject;
+    private final IUserRepository userRepository;
 
     @Autowired
-    public UserController(@Qualifier("mongodb") UserAccessObject userAccessObject) {
-        this.userAccessObject = userAccessObject;
+    public UserController(@Qualifier("mongodb") IUserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @RequestMapping(method = RequestMethod.POST)
     public void addUser(@RequestBody User user) {
         //  password must be hashed!
-        userAccessObject.insert(user);
+        userRepository.insert(user);
     }
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity.status(200).body(userAccessObject.getAll());
+        return ResponseEntity.status(200).body(userRepository.getAll());
     }
 
     @RequestMapping(path = "{id}", method = RequestMethod.GET)
@@ -41,7 +41,7 @@ public class UserController {
                 return ResponseEntity.status(403).body("Your not allowed to access this user");
             }
         }
-        var user = userAccessObject.get(id);
+        var user = userRepository.get(id);
         if (user.isPresent()) {
             return ResponseEntity.status(200).body(user);
         }

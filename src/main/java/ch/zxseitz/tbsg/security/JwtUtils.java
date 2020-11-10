@@ -1,11 +1,7 @@
 package ch.zxseitz.tbsg.security;
 
-import ch.zxseitz.tbsg.json.FieldWhitelistStrategy;
 import ch.zxseitz.tbsg.model.User;
 
-import com.google.gson.Gson;
-
-import com.google.gson.GsonBuilder;
 import io.jsonwebtoken.*;
 
 import java.io.IOException;

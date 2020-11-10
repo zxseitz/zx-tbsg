@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.api;
 
-import ch.zxseitz.tbsg.dao.UserAccessObject;
+import ch.zxseitz.tbsg.repo.IUserRepository;
 import ch.zxseitz.tbsg.model.Role;
 import ch.zxseitz.tbsg.model.User;
 import ch.zxseitz.tbsg.model.request.LoginRequest;
@@ -21,27 +21,29 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
-    @Autowired
-    AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final IUserRepository userRepository;
+    private final PasswordEncoder encoder;
+    private final JwtUtils jwtUtils;
 
     @Autowired
-    UserAccessObject userAccessObject;
-
-    @Autowired
-    PasswordEncoder encoder;
-
-    @Autowired
-    JwtUtils jwtUtils;
+    public AuthController(AuthenticationManager authenticationManager, IUserRepository userRepository,
+                          PasswordEncoder encoder, JwtUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.encoder = encoder;
+        this.jwtUtils = jwtUtils;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
-        if (userAccessObject.getByUsername(registerRequest.getUsername()).isPresent()) {
+        if (userRepository.getByUsername(registerRequest.getUsername()).isPresent()) {
             return ResponseEntity.status(400).body("Username already taken");
         }
-        if (userAccessObject.getByEmail(registerRequest.getEmail()).isPresent()) {
+        if (userRepository.getByEmail(registerRequest.getEmail()).isPresent()) {
             return ResponseEntity.status(400).body("Username already taken");
         }
-        userAccessObject.insert(new User(ObjectId.get(), registerRequest.getUsername(),
+        userRepository.insert(new User(ObjectId.get(), registerRequest.getUsername(),
                 registerRequest.getEmail(), encoder.encode(registerRequest.getPassword()),
                 Collections.singletonList(Role.User)));
         return ResponseEntity.status(200).build();
@@ -52,7 +54,7 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         // todo attach user to authentication object
-        var user = userAccessObject.getByUsername(loginRequest.getUsername());
+        var user = userRepository.getByUsername(loginRequest.getUsername());
         if (user.isPresent()) {
             var jwt = jwtUtils.createJwt(user.get());
             return ResponseEntity.status(200).body(jwt);

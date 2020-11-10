@@ -1,6 +1,7 @@
-package ch.zxseitz.tbsg.dao;
+package ch.zxseitz.tbsg.repo.mongo;
 
 import ch.zxseitz.tbsg.model.User;
+import ch.zxseitz.tbsg.repo.IUserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -14,7 +15,7 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Repository("mongodb")
-public class MongoClientImpl implements UserAccessObject {
+public class MongoClientImpl implements IUserRepository {
     private final MongoTemplate mongoTemplate;
 
     @Autowired

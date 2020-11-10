@@ -1,6 +1,8 @@
-package ch.zxseitz.tbsg.security;
+package ch.zxseitz.tbsg.repo.mongo;
 
-import ch.zxseitz.tbsg.dao.UserAccessObject;
+import ch.zxseitz.tbsg.repo.IUserRepository;
+import ch.zxseitz.tbsg.security.UserDetailsImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,17 +11,17 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service("mongo_us")
-public class UserDetailsServiceMongoImpl implements UserDetailsService {
-    private final UserAccessObject userAccessObject;
+public class MongoUserDetailsService implements UserDetailsService {
+    private final IUserRepository userRepository;
 
     @Autowired
-    public UserDetailsServiceMongoImpl(@Qualifier("mongodb") UserAccessObject userAccessObject) {
-        this.userAccessObject = userAccessObject;
+    public MongoUserDetailsService(@Qualifier("mongodb") IUserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var user = userAccessObject.getByUsername(username);
+        var user = userRepository.getByUsername(username);
         user.orElseThrow(() -> new UsernameNotFoundException(String.format("No user with username \"%s\" was found", username)));
         return user.map(UserDetailsImpl::create).get();
     }
