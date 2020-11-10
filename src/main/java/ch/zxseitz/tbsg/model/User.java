@@ -3,6 +3,7 @@ package ch.zxseitz.tbsg.model;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,9 +17,9 @@ public class User {
     private final String username;
     private final String email;
     private final String password;  // hashed
-    private final List<String> roles;
+    private final List<GrantedAuthority> roles;
 
-    public User(ObjectId id, String username, String email, String password, Collection<String> roles) {
+    public User(ObjectId id, String username, String email, String password, Collection<GrantedAuthority> roles) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -26,7 +27,7 @@ public class User {
         this.roles = new ArrayList<>(roles);
     }
 
-    public Collection<String> getRoles() {
+    public Collection<GrantedAuthority> getRoles() {
         return roles;
     }
 

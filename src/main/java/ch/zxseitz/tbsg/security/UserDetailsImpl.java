@@ -59,8 +59,6 @@ public class UserDetailsImpl implements UserDetails {
 
     public static UserDetailsImpl create(User user) {
         return new UserDetailsImpl(user.getUsername(), user.getPassword(),
-                user.getRoles().stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList()));
+                user.getRoles());
     }
 }

@@ -35,7 +35,7 @@ public class UserController {
     @RequestMapping(path = "{id}", method = RequestMethod.GET)
     public ResponseEntity<?> getUser(@PathVariable("id") ObjectId id) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (!auth.getAuthorities().contains(new SimpleGrantedAuthority(Role.Admin))) {
+        if (!auth.getAuthorities().contains(Role.Admin)) {
             // non admin scope
             if (!auth.getPrincipal().equals(id)) {
                 return ResponseEntity.status(403).body("Your not allowed to access this user");
