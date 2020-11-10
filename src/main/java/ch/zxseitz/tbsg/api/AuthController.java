@@ -1,5 +1,6 @@
 package ch.zxseitz.tbsg.api;
 
+import ch.zxseitz.tbsg.model.response.JwtResponse;
 import ch.zxseitz.tbsg.repo.IUserRepository;
 import ch.zxseitz.tbsg.model.Role;
 import ch.zxseitz.tbsg.model.User;
@@ -57,7 +58,7 @@ public class AuthController {
         var user = userRepository.getByUsername(loginRequest.getUsername());
         if (user.isPresent()) {
             var jwt = jwtUtils.createJwt(user.get());
-            return ResponseEntity.status(200).body(jwt);
+            return ResponseEntity.status(200).body(new JwtResponse(jwt));
         }
         return ResponseEntity.status(400).build();
     }

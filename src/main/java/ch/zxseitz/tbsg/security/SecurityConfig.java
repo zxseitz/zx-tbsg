@@ -52,7 +52,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/user/**").hasAuthority(Role.Admin.getAuthority())
                 .antMatchers("/api/v1/auth/**").permitAll()
                 .antMatchers("/api/v1/**").authenticated()
-                .antMatchers("/static").permitAll()
+                .antMatchers("/static/**").permitAll()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }
