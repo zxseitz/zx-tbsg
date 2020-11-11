@@ -39,10 +39,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
+
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService);
     }
+
+    // todo global cors configuration
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -51,7 +55,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .hasAnyAuthority(Role.User.getAuthority(), Role.Admin.getAuthority())
                 .antMatchers("/api/v1/user/**").hasAuthority(Role.Admin.getAuthority())
                 .antMatchers("/api/v1/auth/**").permitAll()
-                .antMatchers("/api/v1/**").authenticated()
+                .antMatchers("/api/v1/test/**").hasAnyAuthority(Role.User.getAuthority(), Role.Admin.getAuthority())
                 .antMatchers("/static/**").permitAll()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

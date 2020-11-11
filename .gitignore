@@ -1,4 +1,13 @@
-HELP.md
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Gradle
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -17,15 +26,6 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -37,5 +37,5 @@ out/
 .vscode/
 
 ## hidden configs
-secret/
+**/secret/
 mongo.properties
