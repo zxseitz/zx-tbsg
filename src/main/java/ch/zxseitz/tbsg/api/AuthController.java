@@ -38,11 +38,14 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+        if (!registerRequest.validate()) {
+            return ResponseEntity.status(400).body("Invalid request");
+        }
         if (userRepository.getByUsername(registerRequest.getUsername()).isPresent()) {
             return ResponseEntity.status(400).body("Username already taken");
         }
         if (userRepository.getByEmail(registerRequest.getEmail()).isPresent()) {
-            return ResponseEntity.status(400).body("Username already taken");
+            return ResponseEntity.status(400).body("Email already taken");
         }
         userRepository.insert(new User(ObjectId.get(), registerRequest.getUsername(),
                 registerRequest.getEmail(), encoder.encode(registerRequest.getPassword()),
@@ -52,6 +55,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        if (!loginRequest.validate()) {
+            return ResponseEntity.status(400).body("Invalid request");
+        }
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         // todo attach user to authentication object

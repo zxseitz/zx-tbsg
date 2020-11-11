@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.model.request;
 
-public class RegisterRequest {
+public class RegisterRequest implements IRequest {
     private final String username;
     private final String email;
     private final String password;
@@ -21,5 +21,12 @@ public class RegisterRequest {
 
     public String getPassword() {
         return password;
+    }
+
+    @Override
+    public boolean validate() {
+        return Validator.checkUsername(username)
+                && Validator.checkEmail(email)
+                && Validator.checkPassword(password);
     }
 }
