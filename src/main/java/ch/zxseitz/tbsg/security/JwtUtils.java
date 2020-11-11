@@ -15,6 +15,7 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,8 @@ public class JwtUtils {
     private final String secret;
 
     @Autowired
-    public JwtUtils() throws IOException, URISyntaxException {
-        this.secret = Files.readString(Paths.get(Objects.requireNonNull(JwtUtils.class.getClassLoader()
-                .getResource("secret/apikey")).toURI()));
+    public JwtUtils(@Value("${app.apikey.location}") String apikeypath) throws IOException {
+        this.secret = Files.readString(Paths.get(apikeypath));
         logger.info("Loaded api key");
     }
 
