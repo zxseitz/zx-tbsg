@@ -33,11 +33,12 @@ public class JwtUtils {
     }
 
     public String createJwt(User user) {
+        var roles = user.getRoles().stream()
+                .map(GrantedAuthority::getAuthority)
+                .reduce((role1, role2) -> role1 + "," + role2).orElseGet(() -> "");
         return Jwts.builder()
                 .claim("sub",user.id.toHexString())
-                .claim("roles", user.getRoles().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .reduce((role1, role2) -> role1 + "," + role2))
+                .claim("roles", roles)
                 .claim(Claims.EXPIRATION, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
                 .signWith(SignatureAlgorithm.HS256, secret).compact();
     }
