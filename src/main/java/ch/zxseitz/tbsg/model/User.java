@@ -1,5 +1,6 @@
 package ch.zxseitz.tbsg.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,12 +12,10 @@ import java.util.List;
 
 @Document(collection = "users")
 public class User {
-    @Id
-    public final ObjectId id;
-
+    @Id public final ObjectId id;
     private final String username;
     private final String email;
-    private final String password;  // hashed
+    @JsonIgnore private final String password;  // hashed
     private final List<GrantedAuthority> roles;
 
     public User(ObjectId id, String username, String email, String password, Collection<GrantedAuthority> roles) {
