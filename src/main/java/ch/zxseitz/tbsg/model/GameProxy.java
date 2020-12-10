@@ -1,15 +1,17 @@
 package ch.zxseitz.tbsg.model;
 
+import ch.zxseitz.tbsg.games.IGame;
+
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GameProxy {
     private final String name;
-    private final Object game;
+    private final IGame game;
     private final Map<String, Method> webhooks;
 
-    public GameProxy(String name, Object game) {
+    public GameProxy(String name, IGame game) {
         this.name = name;
         this.game = game;
         this.webhooks = new HashMap<>();
@@ -19,7 +21,7 @@ public class GameProxy {
         return name;
     }
 
-    public Object getGame() {
+    public IGame getInstance() {
         return game;
     }
 
