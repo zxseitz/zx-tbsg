@@ -1,3 +1,6 @@
 rootProject.name = 'tbsg'
 include 'games'
 
+include ':reversi'
+
+project(':reversi').projectDir = file('../zx-tbsg-reversi')
