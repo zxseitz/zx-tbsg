@@ -1,0 +1,12 @@
+apply plugin: 'java'
+
+group 'ch.zxseitz'
+version '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}

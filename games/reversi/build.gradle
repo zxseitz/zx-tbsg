@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+group = 'ch.zxseitz'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':shared')
+
+    testImplementation 'junit:junit:4.13'
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
+    testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.7.0")
+}
+
+test {
+    useJUnitPlatform()
+}
