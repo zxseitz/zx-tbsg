@@ -1,4 +1,4 @@
-package ch.zxseitz.tbsg.server.model;
+package ch.zxseitz.tbsg.server.games;
 
 import ch.zxseitz.tbsg.games.IGame;
 

@@ -3,5 +3,4 @@ rootProject.name = 'tbsg'
 include 'shared'
 include 'server'
 include 'games:reversi'
-include 'untitled'
 
