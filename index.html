@@ -1,10 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Title</title>
 </head>
 <body>
-$END$
+    <script>
+        function connect(message) {
+            const ws = new WebSocket('ws://localhost:8080/socket');
+            ws.onmessage = (data) => {
+                console.log(data);
+            }
+            ws.onopen = () => {
+                ws.send(JSON.stringify({name: message}))
+            }
+        }
+    </script>
+
+    <h3>Websocket test</h3>
+    <button onclick="connect('test')">CONNECT</button>
 </body>
 </html>
