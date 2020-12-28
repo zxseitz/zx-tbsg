@@ -8,10 +8,13 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Document(collection = "users")
 public class User {
+    public static final User GUEST = new User(null, "guest", null, null, Collections.EMPTY_SET);
+
     @Id public final ObjectId id;
     private final String username;
     private final String email;

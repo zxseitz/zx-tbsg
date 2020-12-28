@@ -1,5 +1,10 @@
 package ch.zxseitz.tbsg.server.websocket;
 
+import ch.zxseitz.tbsg.server.api.GameController;
+import ch.zxseitz.tbsg.server.games.GameManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -15,27 +20,40 @@ import java.util.Map;
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
+
+    private final GameManager gameManager;
+
+    @Autowired
+    public WebSocketConfig(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new SocketHandler(), "/socket")
-                .setAllowedOrigins("*")  // handles unexpected response code 403
-                .addInterceptors(
-                        new HttpSessionHandshakeInterceptor() {
-                            @Override
-                            public void afterHandshake(ServerHttpRequest request,
-                                                       ServerHttpResponse response, WebSocketHandler wsHandler,
-                                                       @Nullable Exception ex) {
-                                super.afterHandshake(request, response, wsHandler, ex);
-                            }
-
-                            @Override
-                            public boolean beforeHandshake(ServerHttpRequest request,
+        gameManager.foreachGame(proxy -> {
+            var path = String.join("/", "/socket/v1/games", proxy.getName());
+            registry.addHandler(new SocketHandler(proxy), path)
+                    .setAllowedOrigins("*")  // handles unexpected response code 403
+                    .addInterceptors(
+                            new HttpSessionHandshakeInterceptor() {
+                                @Override
+                                public void afterHandshake(ServerHttpRequest request,
                                                            ServerHttpResponse response, WebSocketHandler wsHandler,
-                                                           Map<String, Object> attributes) throws Exception {
-                                //todo auth
-                                return true;
+                                                           @Nullable Exception ex) {
+                                    super.afterHandshake(request, response, wsHandler, ex);
+                                }
+
+                                @Override
+                                public boolean beforeHandshake(ServerHttpRequest request,
+                                                               ServerHttpResponse response, WebSocketHandler wsHandler,
+                                                               Map<String, Object> attributes) throws Exception {
+                                    //todo auth
+                                    return true;
+                                }
                             }
-                        }
-                );
+                    );
+            logger.info("Registered new websocket connection for game {}: {}", proxy.getName(), path);
+        });
     }
 }

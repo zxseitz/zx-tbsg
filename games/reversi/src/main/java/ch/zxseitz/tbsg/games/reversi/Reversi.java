@@ -14,8 +14,8 @@ public class Reversi implements IGame {
     }
 
     @Override
-    public void invoke(String message) {
-
+    public String invoke(String message) {
+        return "Hello " + message;
     }
 
     @TbsgWebHook(path = "index", method = TbsgWebHook.Method.GET)

@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 @Component
 public class GameManager {
@@ -75,7 +76,7 @@ public class GameManager {
                     // todo improve request method handling
                     var requestMethod = annotation.method().name();
                     gameProxy.getWebhooks().put(requestMethod + ":" + annotation.path(), method);
-                    logger.info("Registered game {} webhook {}:{}", gameName, requestMethod, annotation.path());
+                    logger.info("Registered new webhook {}:{} for game {}", requestMethod, annotation.path(), gameName);
                 }
             }
             proxies.put(gameName, gameProxy);
@@ -89,5 +90,9 @@ public class GameManager {
 
     public GameProxy getGame(String name) {
         return proxies.get(name);
+    }
+
+    public void foreachGame(Consumer<GameProxy> action) {
+        proxies.values().forEach(action);
     }
 }
