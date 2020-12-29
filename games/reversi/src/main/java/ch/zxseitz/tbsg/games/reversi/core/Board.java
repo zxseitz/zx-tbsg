@@ -1,6 +1,8 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
 
+import java.util.Arrays;
+
 public class Board {
     // field states
     public static final int FIELD_UNDEFINED = -1;
@@ -64,5 +66,10 @@ public class Board {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(fields);
     }
 }

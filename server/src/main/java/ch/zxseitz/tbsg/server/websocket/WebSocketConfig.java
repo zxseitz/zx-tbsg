@@ -1,6 +1,5 @@
 package ch.zxseitz.tbsg.server.websocket;
 
-import ch.zxseitz.tbsg.server.api.GameController;
 import ch.zxseitz.tbsg.server.games.GameManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +32,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         gameManager.foreachGame(proxy -> {
             var path = String.join("/", "/socket/v1/games", proxy.getName());
-            registry.addHandler(new SocketHandler(proxy), path)
+            registry.addHandler(new GameSocketHandler(proxy), path)
                     .setAllowedOrigins("*")  // handles unexpected response code 403
                     .addInterceptors(
                             new HttpSessionHandshakeInterceptor() {

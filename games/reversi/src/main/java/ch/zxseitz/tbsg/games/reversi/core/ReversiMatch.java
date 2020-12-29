@@ -1,5 +1,8 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
+import ch.zxseitz.tbsg.games.ICommand;
+import ch.zxseitz.tbsg.games.IMatch;
+import ch.zxseitz.tbsg.games.IPlayer;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidFieldException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlaceException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlayerException;
@@ -10,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class Match<T, P> {
+public class ReversiMatch implements IMatch {
     public static final int STATE_UNDEFINED = -1;
     public static final int STATE_NEXT_BLACK = 1;
     public static final int STATE_NEXT_WHITE = 2;
@@ -18,49 +21,29 @@ public class Match<T, P> {
     public static final int STATE_WON_BLACK = 11;
     public static final int STATE_WON_WHITE = 12;
 
-    private final T id;
-    private final P playerBlack;
-    private final P playerWhite;
-    private final List<Audit<P>> history;
+    private final String id;
+    private final IPlayer black;
+    private final IPlayer white;
+    private final List<Audit> history;
     private final Board board;
     private final ActionCollection actionCollection;
     int state;  //accessible for testing
 
-    public Match(T id, P playerBlack, P playerWhite, Board board) {
+    public ReversiMatch(String id, IPlayer black, IPlayer white, Board board) {
         this.id = id;
-        this.playerBlack = playerBlack;
-        this.playerWhite = playerWhite;
+        this.black = black;
+        this.white = white;
         this.board = board;
         this.history = new ArrayList<>(60);
         this.actionCollection = new ActionCollection();
     }
 
-    public T getId() {
+    @Override
+    public String getId() {
         return id;
     }
 
-    public P getPlayerBlack() {
-        return playerBlack;
-    }
-
-    public P getPlayerWhite() {
-        return playerWhite;
-    }
-
-    /**
-     * Returns the current state of this match.
-     *
-     * @return <code>1</code> black's turn, <code>2</code> white's turn,
-     *   <code>10</code> tie, <code>11</code> black won or <code>12</code> white won.
-     */
-    public int getState() {
-        return state;
-    }
-
-    public List<Audit<P>> getHistory() {
-        return history;
-    }
-
+    @Override
     public void init() {
         // set board initial state (othello)
         board.set(27, 2);
@@ -78,51 +61,68 @@ public class Match<T, P> {
     }
 
     /**
-     * Returns the color of a player.
+     * Returns the current state of this match.
      *
-     * @param player player itself
-     * @return <code>1</code> black, <code>2</code> white or <code>-1</code> undefined
+     * @return <code>1</code> black's turn, <code>2</code> white's turn,
+     *   <code>10</code> tie, <code>11</code> black won or <code>12</code> white won.
      */
-    public int getColor(P player) {
-        return player == playerBlack ? Board.FIELD_BLACK : player == playerWhite
-                ? Board.FIELD_WHITE : Board.FIELD_UNDEFINED;
+    public int getState() {
+        return state;
+    }
+
+    public List<Audit> getHistory() {
+        return history;
+    }
+
+    public int getColor(IPlayer player) {
+        return player == black ? 1 : player == white ? 2 : -1;
+    }
+
+    public IPlayer getOpponent(IPlayer player) {
+        return player == black ? white : player == white ? black : null;
+    }
+
+    public static int getOpponentColor(int color) {
+        if (color < 1 || color > 2) {
+            throw new IllegalArgumentException(String.format("Illegal color param: %d", color));
+        }
+        return 3 - color;
+    }
+
+    public String getColorName(int color) {
+        return color == 1 ? "black" : color == 2 ? "white" : "unknown";
     }
 
     /**
      * Places a new token of a player on a field and updates the internal state.
      *
-     * @param player source
+     * @param color acteur
      * @param x      x-coordinate
      * @param y      y-coordinate
      * @throws InvalidPlayerException if the player is not a member of this match
      * @throws InvalidPlaceException if the place action is not valid
      * @throws InvalidFieldException if the field position is invalid
      */
-    public void place(P player, int x, int y) throws ReversiException {
-        var playerColor = getColor(player);
-        var opponentColor = 3 - playerColor;
-
+    public void place(int color, int x, int y) throws ReversiException {
+        var opponentColor = getOpponentColor(color);
         // check current state
-        if (playerColor == Board.FIELD_UNDEFINED) {
-            throw new InvalidPlayerException(String.format("Player [%s] is not a member of  match [%s]", player, id));
-        }
         if (state >= STATE_TIE) {
             throw new InvalidPlaceException(String.format("Match [%s] is already finished", id));
         }
-        if (playerColor != state) {
-            throw new InvalidPlaceException(String.format("Not player's [%s] turn in match [%s]", player, id));
+        if (color != state) {
+            throw new InvalidPlaceException(String.format("Not %s's turn in match [%s]", getColorName(color), id));
         }
         var index = board.covers(x, y) ? Board.getIndex(x, y) : -1;
         if (!actionCollection.containsIndex(index)) {
-            throw new InvalidFieldException(String.format("Invalid place action of player [%s] on field (%d, %d)" +
-                    "in match [%s]", player, x, y, id));
+            throw new InvalidFieldException(String.format("Invalid place action of %s on field (%d, %d)" +
+                    "in match [%s]", getColorName(color), x, y, id));
         }
 
         // apply new token
-        history.add(new Audit<>(player, index));
-        board.set(index, playerColor);
+        history.add(new Audit(color, index));
+        board.set(index, color);
         actionCollection.foreach(index, i -> {
-            board.set(i, playerColor);
+            board.set(i, color);
         });
 
         // update state and actions
@@ -151,9 +151,9 @@ public class Match<T, P> {
         }
 
         // check next own turn, if opponent has no legal moves
-        addActions(emptyFields, playerColor);
+        addActions(emptyFields, color);
         if (actionCollection.anyIndices()) {
-            this.state = playerColor;
+            this.state = color;
             return;
         }
 
@@ -198,5 +198,9 @@ public class Match<T, P> {
             fields.clear();
         }
         return fields;
+    }
+
+    public String printBoard() {
+        return board.toString();
     }
 }

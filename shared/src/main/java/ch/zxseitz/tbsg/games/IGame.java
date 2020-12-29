@@ -1,8 +1,10 @@
 package ch.zxseitz.tbsg.games;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public interface IGame {
-    InputStream readFile(String path);
-    String invoke(String message);
+    ICommand parse(IPlayer sender, String prefix, String body) throws CommandException;
+    InputStream readFile(String path) throws IOException;
+    IMatch newMatch(String id, IPlayer... players);
 }

@@ -17,7 +17,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Match.class, Board.class, BoardIterator.class, ActionCollection.class})
+@PrepareForTest({ReversiMatch.class, Board.class, BoardIterator.class, ActionCollection.class})
 public class MatchTest {
     private final Board board;
     private final BoardIterator iterator;
@@ -46,7 +46,7 @@ public class MatchTest {
 
     @Test
     public void testInit() {
-        var match = new Match<>(0, "black", "white", board);
+        var match = new ReversiMatch(0, "black", "white", board);
         match.init();
 
         verify(board, times(1)).set(27, Board.FIELD_WHITE);
@@ -59,12 +59,12 @@ public class MatchTest {
         verify(actionCollection, times(1)).add(37, 36);
         verify(actionCollection, times(1)).add(44, 36);
 
-        Assert.assertEquals(Match.STATE_NEXT_BLACK, match.getState());
+        Assert.assertEquals(ReversiMatch.STATE_NEXT_BLACK, match.getState());
     }
 
     @Test
     public void testGetColorWhite() {
-        var match = new Match<>(0, "black", "white", board);
+        var match = new ReversiMatch<>(0, "black", "white", board);
         Assert.assertEquals(1, match.getColor("black"));
         Assert.assertEquals(2, match.getColor("white"));
         Assert.assertEquals(-1, match.getColor("something"));
@@ -73,7 +73,7 @@ public class MatchTest {
     @Test
     public void testPlaceInvalidPlayer() {
         try {
-            var match = new Match<>(0, "black", "white", board);
+            var match = new ReversiMatch<>(0, "black", "white", board);
             match.place("someone", 2, 3);
             Assert.fail();
         } catch (InvalidPlayerException ipe) {
@@ -87,8 +87,8 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameTie() {
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_TIE;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_TIE;
             match.place("black", 2, 3);
             Assert.fail();
         } catch (InvalidPlaceException ipe) {
@@ -102,8 +102,8 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameBlackWon() {
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_WON_BLACK;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_WON_BLACK;
             match.place("black", 2, 3);
             Assert.fail();
         } catch (InvalidPlaceException ipe) {
@@ -117,8 +117,8 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameWhiteWon() {
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_WON_WHITE;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_WON_WHITE;
             match.place("black", 2, 3);
             Assert.fail();
         } catch (InvalidPlaceException ipe) {
@@ -132,8 +132,8 @@ public class MatchTest {
     @Test
     public void testPlaceOpponentsTurn() {
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_NEXT_BLACK;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place("white", 2, 3);
             Assert.fail();
         } catch (InvalidPlaceException ipe) {
@@ -149,8 +149,8 @@ public class MatchTest {
         doReturn(false).when(board).covers(-1, -1);
 
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_NEXT_BLACK;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place("black", -1, -1);
             Assert.fail();
         } catch (InvalidFieldException ife) {
@@ -185,8 +185,8 @@ public class MatchTest {
         doReturn(true).when(actionCollection).anyIndices();
 
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_NEXT_BLACK;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place("black", 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
@@ -214,7 +214,7 @@ public class MatchTest {
             verify(iterator, times(8)).set(eq(2), eq(7), anyInt(), anyInt());
             verify(iterator, times(8)).set(eq(7), eq(7), anyInt(), anyInt());
 
-            Assert.assertEquals(Match.STATE_NEXT_WHITE, match.getState());
+            Assert.assertEquals(ReversiMatch.STATE_NEXT_WHITE, match.getState());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -245,8 +245,8 @@ public class MatchTest {
                 .when(actionCollection).anyIndices();
 
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_NEXT_BLACK;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place("black", 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
@@ -274,7 +274,7 @@ public class MatchTest {
             verify(iterator, times(16)).set(eq(2), eq(7), anyInt(), anyInt());
             verify(iterator, times(16)).set(eq(7), eq(7), anyInt(), anyInt());
 
-            Assert.assertEquals(Match.STATE_NEXT_BLACK, match.getState());
+            Assert.assertEquals(ReversiMatch.STATE_NEXT_BLACK, match.getState());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -304,12 +304,12 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_NEXT_BLACK;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place("black", 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
-            Assert.assertEquals(Match.STATE_TIE, match.getState());
+            Assert.assertEquals(ReversiMatch.STATE_TIE, match.getState());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -339,12 +339,12 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_NEXT_BLACK;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place("black", 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
-            Assert.assertEquals(Match.STATE_WON_BLACK, match.getState());
+            Assert.assertEquals(ReversiMatch.STATE_WON_BLACK, match.getState());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -374,12 +374,12 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new Match<>(0, "black", "white", board);
-            match.state = Match.STATE_NEXT_BLACK;
+            var match = new ReversiMatch<>(0, "black", "white", board);
+            match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place("black", 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
-            Assert.assertEquals(Match.STATE_WON_WHITE, match.getState());
+            Assert.assertEquals(ReversiMatch.STATE_WON_WHITE, match.getState());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
