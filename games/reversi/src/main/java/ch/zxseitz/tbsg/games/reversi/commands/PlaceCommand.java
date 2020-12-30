@@ -6,7 +6,7 @@ import ch.zxseitz.tbsg.games.reversi.core.ReversiMatch;
 public class PlaceCommand extends SimpleCommand {
     private final int x,y;
 
-    public PlaceCommand(IPlayer sender, int x, int y) {
+    public PlaceCommand(IClient sender, int x, int y) {
         super(sender);
         this.x = x;
         this.y = y;

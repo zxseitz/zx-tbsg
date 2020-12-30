@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.games;
 
 public interface ICommand {
-    IPlayer getSender();
+    IClient getSender();
     void execute(IMatch match) throws GameException;
 }

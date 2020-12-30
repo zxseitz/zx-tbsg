@@ -12,7 +12,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,103 +21,103 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameSocketHandler extends TextWebSocketHandler {
     private final Logger logger;
     private final GameProxy proxy;
-    private final Map<String, Player> sessions;
+    private final Map<String, Client> clients;
     private final Map<String, IMatch> matches;
     private final Map<String, IBasicCommand> commands;
 
     public GameSocketHandler(GameProxy proxy) {
         this.logger = LoggerFactory.getLogger(GameSocketHandler.class.getName() + ":" + proxy.getName());
         this.proxy = proxy;
-        this.sessions = new ConcurrentHashMap<>();
+        this.clients = new ConcurrentHashMap<>();
         this.matches = new ConcurrentHashMap<>();
         this.commands = new HashMap<>();
 
-        commands.put("WAIT", (player, body) -> {
+        commands.put("WAIT", (client, body) -> {
             criticalPlayerSection(() -> {
-                if (player.getState() == Player.State.ONLINE) {
-                    player.setState(Player.State.WAITING);
+                if (client.getState() == Client.State.ONLINE) {
+                    client.setState(Client.State.WAITING);
                 } else {
-                    player.send("ERROR:You are currently not online");
+                    client.send("ERROR:You are currently not online");
                 }
                 return null;
-            }, player);
+            }, client);
         });
-        commands.put("WAITING", (player, body) -> {
-            var waiting = sessions.values().stream()
-                    .filter(player1 -> player1.getState() == Player.State.WAITING)
-                    .map(Player::toString)
+        commands.put("WAITING", (client, body) -> {
+            var waiting = clients.values().stream()
+                    .filter(client1 -> client1.getState() == Client.State.WAITING)
+                    .map(Client::toString)
                     .reduce((left, right) -> left + ";" + right);
-            player.send("WAITING:" + waiting);
+            client.send("WAITING:" + waiting);
         });
-        commands.put("CHALLENGE", (player, body) -> {
-            var opponent = sessions.get(body);
+        commands.put("CHALLENGE", (client, body) -> {
+            var opponent = clients.get(body);
             if (opponent != null) {
                 criticalPlayerSection(() -> {
-                    if (player.getState() == Player.State.ONLINE && opponent.getState() == Player.State.WAITING) {
-                        opponent.send("CHALLENGE:" + player.toString());
-                        player.setState(Player.State.CHALLENGING);
-                        opponent.setState(Player.State.CHALLENGED);
+                    if (client.getState() == Client.State.ONLINE && opponent.getState() == Client.State.WAITING) {
+                        opponent.send("CHALLENGE:" + client.toString());
+                        client.setState(Client.State.CHALLENGING);
+                        opponent.setState(Client.State.CHALLENGED);
                     }
                     return null;
-                }, player, opponent);
+                }, client, opponent);
             }
         });
-        commands.put("CANCEL", (player, body) -> {
-            var opponent = sessions.get(body);
+        commands.put("CANCEL", (client, body) -> {
+            var opponent = clients.get(body);
             if (opponent != null) {
                 criticalPlayerSection(() -> {
-                    if (player.getState() == Player.State.CHALLENGING && opponent.getState() == Player.State.CHALLENGED) {
-                        opponent.send("CANCEL:" + player.toString());
-                        player.setState(Player.State.ONLINE);
-                        opponent.setState(Player.State.WAITING);
+                    if (client.getState() == Client.State.CHALLENGING && opponent.getState() == Client.State.CHALLENGED) {
+                        opponent.send("CANCEL:" + client.toString());
+                        client.setState(Client.State.ONLINE);
+                        opponent.setState(Client.State.WAITING);
                     }
                     return null;
-                }, player, opponent);
+                }, client, opponent);
             }
         });
-        commands.put("DECLINE", (player, body) -> {
-            var opponent = sessions.get(body);
+        commands.put("DECLINE", (client, body) -> {
+            var opponent = clients.get(body);
             if (opponent != null) {
                 criticalPlayerSection(() -> {
-                    if (player.getState() == Player.State.CHALLENGED && opponent.getState() == Player.State.CHALLENGING) {
-                        opponent.send("DECLINE:" + player.toString());
-                        player.setState(Player.State.WAITING);
-                        opponent.setState(Player.State.ONLINE);
+                    if (client.getState() == Client.State.CHALLENGED && opponent.getState() == Client.State.CHALLENGING) {
+                        opponent.send("DECLINE:" + client.toString());
+                        client.setState(Client.State.WAITING);
+                        opponent.setState(Client.State.ONLINE);
                     }
                     return null;
-                }, player, opponent);
+                }, client, opponent);
             }
         });
-        commands.put("ACCEPT", (player, body) -> {
-            var opponent = sessions.get(body);
+        commands.put("ACCEPT", (client, body) -> {
+            var opponent = clients.get(body);
             if (opponent != null) {
                 criticalPlayerSection(() -> {
-                    if (player.getState() == Player.State.CHALLENGED && opponent.getState() == Player.State.CHALLENGING) {
-                        opponent.send("ACCEPT:" + player.toString());
+                    if (client.getState() == Client.State.CHALLENGED && opponent.getState() == Client.State.CHALLENGING) {
+                        opponent.send("ACCEPT:" + client.toString());
                         //todo init match
-                        player.setState(Player.State.INGAME);
-                        opponent.setState(Player.State.INGAME);
+                        client.setState(Client.State.INGAME);
+                        opponent.setState(Client.State.INGAME);
                     }
                     return null;
-                }, player, opponent);
+                }, client, opponent);
             }
         });
     }
 
-    private void criticalPlayerSection(Callable<Void> action, Player... players) throws Exception {
-        var stream = Arrays.stream(players).sorted();
-        stream.forEach(Player::lock);
+    private void criticalPlayerSection(Callable<Void> action, Client... clients) throws Exception {
+        var stream = Arrays.stream(clients).sorted();  // prevent deadlocks
+        stream.forEach(Client::lock);
         try {
             action.call();
         } finally {
-            stream.forEach(Player::unlock);
+            stream.forEach(Client::unlock);
         }
     }
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         try {
-            var player = sessions.get(session.getId());
+            var player = clients.get(session.getId());
             var body = message.getPayload();
             String[] seq = body.split(":");
             var basicCommand = commands.get(seq[0]);
@@ -138,14 +137,14 @@ public class GameSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         logger.info("New websocket client: {}", session.getId());
         // todo: read auth infos
-        var player = new Player(session);
-        sessions.put(session.getId(), player);
+        var player = new Client(session);
+        clients.put(session.getId(), player);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         logger.info("Websocket client disconnected: {}", session.getId());
-        var player = sessions.remove(session.getId());
+        var player = clients.remove(session.getId());
         //todo handle disconnect
     }
 }

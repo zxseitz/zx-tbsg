@@ -1,14 +1,14 @@
 package ch.zxseitz.tbsg.games;
 
 public class SimpleCommand implements ICommand {
-    protected IPlayer sender;
+    protected IClient sender;
 
-    public SimpleCommand(IPlayer sender) {
+    public SimpleCommand(IClient sender) {
         this.sender = sender;
     }
 
     @Override
-    public IPlayer getSender() {
+    public IClient getSender() {
         return sender;
     }
 

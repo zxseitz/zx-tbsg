@@ -1,16 +1,15 @@
 package ch.zxseitz.tbsg.server.websocket;
 
-import ch.zxseitz.tbsg.games.IPlayer;
+import ch.zxseitz.tbsg.games.IClient;
 import ch.zxseitz.tbsg.server.model.User;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Player implements IPlayer, Comparable<Player> {
+public class Client implements IClient, Comparable<Client> {
     public enum State {
         ONLINE,
         WAITING,
@@ -25,11 +24,11 @@ public class Player implements IPlayer, Comparable<Player> {
 
     private volatile State state;
 
-    public Player(WebSocketSession session) {
+    public Client(WebSocketSession session) {
         this(session, null);
     }
 
-    public Player(WebSocketSession session, User user) {
+    public Client(WebSocketSession session, User user) {
         this.session = session;
         this.user = user;
         this.lock = new ReentrantLock();
@@ -72,7 +71,7 @@ public class Player implements IPlayer, Comparable<Player> {
     }
 
     @Override
-    public int compareTo(Player o) {
+    public int compareTo(Client o) {
         return session.getId().compareTo(o.session.getId());
     }
 

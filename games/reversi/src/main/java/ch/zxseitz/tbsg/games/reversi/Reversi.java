@@ -10,7 +10,7 @@ import java.io.InputStream;
 @TbsgGame("reversi")
 public class Reversi implements IGame {
     @Override
-    public ICommand parse(IPlayer sender, String prefix, String body) {
+    public ICommand parse(IClient sender, String prefix, String body) {
         if (prefix.equals("PLACE")) {
             try {
                 var x = Integer.parseInt(body, 0, 1, 10);
@@ -24,8 +24,8 @@ public class Reversi implements IGame {
     }
 
     @Override
-    public IMatch newMatch(String id, IPlayer... players) {
-        return new ReversiMatch(id, players[0], players[1], new Board());
+    public IMatch newMatch(String id, IClient... clients) {
+        return new ReversiMatch(id, clients[0], clients[1], new Board());
     }
 
     @Override

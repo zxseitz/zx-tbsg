@@ -1,18 +1,18 @@
 package ch.zxseitz.tbsg.server.games;
 
 import ch.zxseitz.tbsg.games.ICommand;
-import ch.zxseitz.tbsg.games.IPlayer;
-import ch.zxseitz.tbsg.server.websocket.Player;
+import ch.zxseitz.tbsg.games.IClient;
+import ch.zxseitz.tbsg.server.websocket.Client;
 
 public abstract class AbstractCommand implements ICommand {
-    protected Player sender;
+    protected Client sender;
 
-    public AbstractCommand(Player sender) {
+    public AbstractCommand(Client sender) {
         this.sender = sender;
     }
 
     @Override
-    public IPlayer getSender() {
+    public IClient getSender() {
         return sender;
     }
 }

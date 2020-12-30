@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
-import ch.zxseitz.tbsg.games.IPlayer;
+import ch.zxseitz.tbsg.games.IClient;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidFieldException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlaceException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlayerException;
@@ -12,7 +12,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -24,14 +23,14 @@ public class MatchTest {
     private final Board board;
     private final BoardIterator iterator;
     private final ActionCollection actionCollection;
-    private final IPlayer black, white;
+    private final IClient black, white;
 
     public MatchTest() {
         board = mock(Board.class);
         iterator = mock(BoardIterator.class);
         actionCollection = mock(ActionCollection.class);
-        black = mock(IPlayer.class);
-        white = mock(IPlayer.class);
+        black = mock(IClient.class);
+        white = mock(IClient.class);
     }
 
     @Before
@@ -72,7 +71,7 @@ public class MatchTest {
         var match = new ReversiMatch("match", black, white, board);
         Assert.assertEquals(1, match.getColor(black));
         Assert.assertEquals(2, match.getColor(white));
-        Assert.assertEquals(-1, match.getColor(mock(IPlayer.class)));
+        Assert.assertEquals(-1, match.getColor(mock(IClient.class)));
         Assert.assertEquals(-1, match.getColor(null));
     }
 

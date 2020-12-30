@@ -1,8 +1,7 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
-import ch.zxseitz.tbsg.games.ICommand;
 import ch.zxseitz.tbsg.games.IMatch;
-import ch.zxseitz.tbsg.games.IPlayer;
+import ch.zxseitz.tbsg.games.IClient;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidFieldException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlaceException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlayerException;
@@ -22,14 +21,14 @@ public class ReversiMatch implements IMatch {
     public static final int STATE_WON_WHITE = 12;
 
     private final String id;
-    private final IPlayer black;
-    private final IPlayer white;
+    private final IClient black;
+    private final IClient white;
     private final List<Audit> history;
     private final Board board;
     private final ActionCollection actionCollection;
     int state;  //accessible for testing
 
-    public ReversiMatch(String id, IPlayer black, IPlayer white, Board board) {
+    public ReversiMatch(String id, IClient black, IClient white, Board board) {
         this.id = id;
         this.black = black;
         this.white = white;
@@ -74,12 +73,12 @@ public class ReversiMatch implements IMatch {
         return history;
     }
 
-    public int getColor(IPlayer player) {
-        return player == black ? 1 : player == white ? 2 : -1;
+    public int getColor(IClient client) {
+        return client == black ? 1 : client == white ? 2 : -1;
     }
 
-    public IPlayer getOpponent(IPlayer player) {
-        return player == black ? white : player == white ? black : null;
+    public IClient getOpponent(IClient client) {
+        return client == black ? white : client == white ? black : null;
     }
 
     public static int getOpponentColor(int color) throws InvalidPlayerException {
