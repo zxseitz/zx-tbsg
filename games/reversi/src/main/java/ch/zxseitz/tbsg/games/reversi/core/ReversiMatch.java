@@ -82,9 +82,9 @@ public class ReversiMatch implements IMatch {
         return player == black ? white : player == white ? black : null;
     }
 
-    public static int getOpponentColor(int color) {
+    public static int getOpponentColor(int color) throws InvalidPlayerException {
         if (color < 1 || color > 2) {
-            throw new IllegalArgumentException(String.format("Illegal color param: %d", color));
+            throw new InvalidPlayerException(String.format("Unknown color index: %d", color));
         }
         return 3 - color;
     }

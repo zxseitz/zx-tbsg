@@ -1,5 +1,6 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
+import ch.zxseitz.tbsg.games.IPlayer;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidFieldException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlaceException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlayerException;
@@ -11,6 +12,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -22,16 +24,19 @@ public class MatchTest {
     private final Board board;
     private final BoardIterator iterator;
     private final ActionCollection actionCollection;
+    private final IPlayer black, white;
 
     public MatchTest() {
         board = mock(Board.class);
         iterator = mock(BoardIterator.class);
         actionCollection = mock(ActionCollection.class);
+        black = mock(IPlayer.class);
+        white = mock(IPlayer.class);
     }
 
     @Before
     public void setUp() {
-        reset(board, iterator, actionCollection);
+        reset(board, iterator, actionCollection, black, white);
 
         try {
             PowerMockito.whenNew(BoardIterator.class)
@@ -46,7 +51,7 @@ public class MatchTest {
 
     @Test
     public void testInit() {
-        var match = new ReversiMatch(0, "black", "white", board);
+        var match = new ReversiMatch("match", black, white, board);
         match.init();
 
         verify(board, times(1)).set(27, Board.FIELD_WHITE);
@@ -63,21 +68,22 @@ public class MatchTest {
     }
 
     @Test
-    public void testGetColorWhite() {
-        var match = new ReversiMatch<>(0, "black", "white", board);
-        Assert.assertEquals(1, match.getColor("black"));
-        Assert.assertEquals(2, match.getColor("white"));
-        Assert.assertEquals(-1, match.getColor("something"));
+    public void testGetColor() {
+        var match = new ReversiMatch("match", black, white, board);
+        Assert.assertEquals(1, match.getColor(black));
+        Assert.assertEquals(2, match.getColor(white));
+        Assert.assertEquals(-1, match.getColor(mock(IPlayer.class)));
+        Assert.assertEquals(-1, match.getColor(null));
     }
 
     @Test
     public void testPlaceInvalidPlayer() {
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
-            match.place("someone", 2, 3);
+            var match = new ReversiMatch("match", black, white, board);
+            match.place(3, 2, 3);
             Assert.fail();
         } catch (InvalidPlayerException ipe) {
-            Assert.assertEquals("Player [someone] is not a member of  match [0]", ipe.getMessage());
+            Assert.assertEquals("Unknown color index: 3", ipe.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -87,12 +93,12 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameTie() {
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_TIE;
-            match.place("black", 2, 3);
+            match.place(1, 2, 3);
             Assert.fail();
         } catch (InvalidPlaceException ipe) {
-            Assert.assertEquals("Match [0] is already finished", ipe.getMessage());
+            Assert.assertEquals("Match [match] is already finished", ipe.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -102,12 +108,12 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameBlackWon() {
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_WON_BLACK;
-            match.place("black", 2, 3);
+            match.place(1, 2, 3);
             Assert.fail();
         } catch (InvalidPlaceException ipe) {
-            Assert.assertEquals("Match [0] is already finished", ipe.getMessage());
+            Assert.assertEquals("Match [match] is already finished", ipe.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -117,12 +123,12 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameWhiteWon() {
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_WON_WHITE;
-            match.place("black", 2, 3);
+            match.place(1, 2, 3);
             Assert.fail();
         } catch (InvalidPlaceException ipe) {
-            Assert.assertEquals("Match [0] is already finished", ipe.getMessage());
+            Assert.assertEquals("Match [match] is already finished", ipe.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -132,12 +138,12 @@ public class MatchTest {
     @Test
     public void testPlaceOpponentsTurn() {
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
-            match.place("white", 2, 3);
+            match.place(2, 2, 3);
             Assert.fail();
         } catch (InvalidPlaceException ipe) {
-            Assert.assertEquals("Not player's [white] turn in match [0]", ipe.getMessage());
+            Assert.assertEquals("Not white's turn in match [match]", ipe.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -149,13 +155,13 @@ public class MatchTest {
         doReturn(false).when(board).covers(-1, -1);
 
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
-            match.place("black", -1, -1);
+            match.place(1, -1, -1);
             Assert.fail();
         } catch (InvalidFieldException ife) {
-            Assert.assertEquals("Invalid place action of player [black] on field (-1, -1)" +
-            "in match [0]", ife.getMessage());
+            Assert.assertEquals("Invalid place action of black on field (-1, -1)" +
+            "in match [match]", ife.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -185,9 +191,9 @@ public class MatchTest {
         doReturn(true).when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
-            match.place("black", 2, 3);
+            match.place(1, 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
 
@@ -245,9 +251,9 @@ public class MatchTest {
                 .when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
-            match.place("black", 2, 3);
+            match.place(1, 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
 
@@ -304,9 +310,9 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
-            match.place("black", 2, 3);
+            match.place(1, 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
             Assert.assertEquals(ReversiMatch.STATE_TIE, match.getState());
@@ -339,9 +345,9 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
-            match.place("black", 2, 3);
+            match.place(1, 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
             Assert.assertEquals(ReversiMatch.STATE_WON_BLACK, match.getState());
@@ -374,9 +380,9 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch<>(0, "black", "white", board);
+            var match = new ReversiMatch("match", black, white, board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
-            match.place("black", 2, 3);
+            match.place(1, 2, 3);
 
             verify(actionCollection, times(1)).foreach(eq(26), any());
             Assert.assertEquals(ReversiMatch.STATE_WON_WHITE, match.getState());
