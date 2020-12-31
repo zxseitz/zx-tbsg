@@ -6,23 +6,17 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Client implements IClient, Comparable<Client> {
-    public enum State {
-        ONLINE,
-        WAITING,
-        CHALLENGING,
-        CHALLENGED,
-        INGAME
-    }
-
+public class Client implements IClient {
     private final WebSocketSession session;
     private final User user;
     private final Lock lock;
 
-    private volatile State state;
+    private final Set<Client> challenges;
 
     public Client(WebSocketSession session) {
         this(session, null);
@@ -32,7 +26,7 @@ public class Client implements IClient, Comparable<Client> {
         this.session = session;
         this.user = user;
         this.lock = new ReentrantLock();
-        this.state = State.ONLINE;
+        this.challenges = new HashSet<>();
     }
 
     @Override
@@ -54,8 +48,8 @@ public class Client implements IClient, Comparable<Client> {
         session.sendMessage(new TextMessage(message));
     }
 
-    public void setState(State state) {
-        this.state = state;
+    public Set<Client> getChallenges() {
+        return challenges;
     }
 
     public void lock() {
@@ -66,13 +60,9 @@ public class Client implements IClient, Comparable<Client> {
         lock.unlock();
     }
 
-    public State getState() {
-        return state;
-    }
-
     @Override
-    public int compareTo(Client o) {
-        return session.getId().compareTo(o.session.getId());
+    public int compareTo(IClient o) {
+        return getID().compareTo(o.getID());
     }
 
     @Override

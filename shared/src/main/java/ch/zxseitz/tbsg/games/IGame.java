@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface IGame {
-    ICommand parse(IClient sender, String prefix, String body) throws CommandException;
+    IEvent parse(IClient sender, String prefix, String body) throws EventException;
     InputStream readFile(String path) throws IOException;
-    IMatch newMatch(String id, IClient... players);
+    IMatch createMatch();
 }

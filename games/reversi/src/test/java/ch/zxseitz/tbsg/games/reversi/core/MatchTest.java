@@ -23,19 +23,16 @@ public class MatchTest {
     private final Board board;
     private final BoardIterator iterator;
     private final ActionCollection actionCollection;
-    private final IClient black, white;
 
     public MatchTest() {
         board = mock(Board.class);
         iterator = mock(BoardIterator.class);
         actionCollection = mock(ActionCollection.class);
-        black = mock(IClient.class);
-        white = mock(IClient.class);
     }
 
     @Before
     public void setUp() {
-        reset(board, iterator, actionCollection, black, white);
+        reset(board, iterator, actionCollection);
 
         try {
             PowerMockito.whenNew(BoardIterator.class)
@@ -50,7 +47,7 @@ public class MatchTest {
 
     @Test
     public void testInit() {
-        var match = new ReversiMatch("match", black, white, board);
+        var match = new ReversiMatch("match", board);
         match.init();
 
         verify(board, times(1)).set(27, Board.FIELD_WHITE);
@@ -67,18 +64,9 @@ public class MatchTest {
     }
 
     @Test
-    public void testGetColor() {
-        var match = new ReversiMatch("match", black, white, board);
-        Assert.assertEquals(1, match.getColor(black));
-        Assert.assertEquals(2, match.getColor(white));
-        Assert.assertEquals(-1, match.getColor(mock(IClient.class)));
-        Assert.assertEquals(-1, match.getColor(null));
-    }
-
-    @Test
     public void testPlaceInvalidPlayer() {
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.place(3, 2, 3);
             Assert.fail();
         } catch (InvalidPlayerException ipe) {
@@ -92,7 +80,7 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameTie() {
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_TIE;
             match.place(1, 2, 3);
             Assert.fail();
@@ -107,7 +95,7 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameBlackWon() {
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_WON_BLACK;
             match.place(1, 2, 3);
             Assert.fail();
@@ -122,7 +110,7 @@ public class MatchTest {
     @Test
     public void testPlaceFinishedGameWhiteWon() {
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_WON_WHITE;
             match.place(1, 2, 3);
             Assert.fail();
@@ -137,7 +125,7 @@ public class MatchTest {
     @Test
     public void testPlaceOpponentsTurn() {
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place(2, 2, 3);
             Assert.fail();
@@ -154,7 +142,7 @@ public class MatchTest {
         doReturn(false).when(board).covers(-1, -1);
 
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place(1, -1, -1);
             Assert.fail();
@@ -190,7 +178,7 @@ public class MatchTest {
         doReturn(true).when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place(1, 2, 3);
 
@@ -250,7 +238,7 @@ public class MatchTest {
                 .when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place(1, 2, 3);
 
@@ -309,7 +297,7 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place(1, 2, 3);
 
@@ -344,7 +332,7 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place(1, 2, 3);
 
@@ -379,7 +367,7 @@ public class MatchTest {
         doReturn(false).when(actionCollection).anyIndices();
 
         try {
-            var match = new ReversiMatch("match", black, white, board);
+            var match = new ReversiMatch("match", board);
             match.state = ReversiMatch.STATE_NEXT_BLACK;
             match.place(1, 2, 3);
 

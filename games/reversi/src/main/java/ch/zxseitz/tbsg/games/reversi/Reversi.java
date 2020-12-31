@@ -1,31 +1,26 @@
 package ch.zxseitz.tbsg.games.reversi;
 
 import ch.zxseitz.tbsg.games.*;
-import ch.zxseitz.tbsg.games.reversi.commands.PlaceCommand;
 import ch.zxseitz.tbsg.games.reversi.core.Board;
 import ch.zxseitz.tbsg.games.reversi.core.ReversiMatch;
 
 import java.io.InputStream;
+import java.util.UUID;
 
 @TbsgGame("reversi")
 public class Reversi implements IGame {
-    @Override
-    public ICommand parse(IClient sender, String prefix, String body) {
-        if (prefix.equals("PLACE")) {
-            try {
-                var x = Integer.parseInt(body, 0, 1, 10);
-                var y = Integer.parseInt(body, 2, 3, 10);
-                return new PlaceCommand(sender, x, y);
-            } catch (NumberFormatException nfe) {
-                return null;
-            }
-        }
-        return null;
+    private static synchronized String createMatchId() {
+        return UUID.randomUUID().toString();
     }
 
     @Override
-    public IMatch newMatch(String id, IClient... clients) {
-        return new ReversiMatch(id, clients[0], clients[1], new Board());
+    public IMatch createMatch() {
+        return new ReversiMatch(createMatchId(), new Board());
+    }
+
+    @Override
+    public IEvent parse(IClient sender, String prefix, String body) throws EventException {
+        return null;
     }
 
     @Override
