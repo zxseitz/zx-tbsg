@@ -6,23 +6,20 @@ import ch.zxseitz.tbsg.games.SimpleEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@Component
-public class EventManager {
-    public static final int CLIENT_CODE_CHALLENGE = 1001;
+public final class EventManager {
+    public static final int CODE_CHALLENGE = 1001;
+    public static final int CODE_CHALLENGE_ABORT = 1002;
+    public static final int CODE_CHALLENGE_ACCEPT = 1003;
+    public static final int CODE_CHALLENGE_DECLINE = 1004;
 
-    public static final int SERVER_CODE_CHALLENGE = 2001;
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    private final ObjectMapper mapper;
+    private EventManager() {}
 
-    public EventManager() {
-        this.mapper = new ObjectMapper();
-    }
-
-    public IEvent parse(String json) throws EventException {
+    public static IEvent parse(String json) throws EventException {
         try {
             var node = mapper.readTree(json);
             var codeNode = node.get("code");
@@ -44,7 +41,7 @@ public class EventManager {
         }
     }
 
-    public String stringify(IEvent event) throws EventException {
+    public static String stringify(IEvent event) throws EventException {
         try {
             var rootNode = mapper.createObjectNode();
             rootNode.put("code", event.getCode());
@@ -59,7 +56,7 @@ public class EventManager {
     }
 
     @SafeVarargs
-    public final String stringify(int code, Map.Entry<String, Object>... args) throws EventException {
+    public static String stringify(int code, Map.Entry<String, Object>... args) throws EventException {
         try {
             var rootNode = mapper.createObjectNode();
             rootNode.put("code", code);
