@@ -1,6 +1,5 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
-import ch.zxseitz.tbsg.games.IClient;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidFieldException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlaceException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlayerException;

@@ -5,8 +5,8 @@ import java.util.function.Consumer;
 public interface IMatch {
     String getId();
     void init();
-    boolean validateId(int clientId);
-    void connect(int clientId, Consumer<IEvent> handler);
-    void disconnect(int clientId);
-    void action(int clientId, IEvent event) throws EventException, GameException;
+    boolean validatePlayer(int player);
+    void connect(int player, Consumer<IEvent> handler);
+    void disconnect(int player);
+    void action(int player, IEvent event) throws EventException, GameException;
 }

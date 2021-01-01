@@ -1,6 +1,10 @@
 package ch.zxseitz.tbsg.games;
 
+import java.util.function.BiConsumer;
+
 public interface IEvent {
     int getCode();
-    <T> T getArgument(Class<T> tClass, int pos);
+    int argumentSize();
+    <T> T getArgument(String name, Class<T> tClass);
+    void foreachArgument(BiConsumer<String, Object> consumer);
 }

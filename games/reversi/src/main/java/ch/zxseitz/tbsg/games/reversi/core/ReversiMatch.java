@@ -44,23 +44,23 @@ public class ReversiMatch implements IMatch {
     }
 
     @Override
-    public boolean validateId(int clientId) {
-        return clientId > 0 && clientId <= 2;
+    public boolean validatePlayer(int player) {
+        return player > 0 && player <= 2;
     }
 
     @Override
-    public void connect(int clientId, Consumer<IEvent> handler) {
-        if (!validateId(clientId) || handler == null) {
+    public void connect(int player, Consumer<IEvent> handler) {
+        if (!validatePlayer(player) || handler == null) {
             throw new IllegalArgumentException("client id is smaller than 1 or grater than 2 or handler is null");
         }
-        clients.putIfAbsent(clientId, handler);
+        clients.putIfAbsent(player, handler);
     }
 
     @Override
-    public void disconnect(int clientId) {
-        var handler = clients.remove(clientId);
+    public void disconnect(int player) {
+        var handler = clients.remove(player);
         if (handler != null) {
-            clients.get(3 - clientId).accept(new SimpleEvent(CODE_SERVER_OPPONENT_DISCONNECTED));
+            clients.get(3 - player).accept(new SimpleEvent(CODE_SERVER_OPPONENT_DISCONNECTED));
         }
     }
 
@@ -81,22 +81,36 @@ public class ReversiMatch implements IMatch {
         state = STATE_NEXT_BLACK;
 
         var boardString = printBoard();  //todo json
-        clients.get(1).accept(new SimpleEventArguments(CODE_SERVER_INIT, 1, boardString));
-        clients.get(2).accept(new SimpleEventArguments(CODE_SERVER_INIT, 0, boardString));
+        var blackInitEvent = new SimpleEvent(CODE_SERVER_INIT);
+        blackInitEvent.addArgument("color", 1);
+        blackInitEvent.addArgument("board", boardString);
+        clients.get(1).accept(blackInitEvent);
+        var whiteInitEvent = new SimpleEvent(CODE_SERVER_INIT);
+        blackInitEvent.addArgument("color", 0);
+        blackInitEvent.addArgument("board", boardString);
+        clients.get(2).accept(whiteInitEvent);
     }
 
     @Override
-    public void action(int sender, IEvent event) throws EventException, GameException {
+    public void action(int player, IEvent event) throws EventException, GameException {
         switch (event.getCode()) {
             case CODE_PLAYER_PLACE:
-                var x  = event.getArgument(Integer.class, 0);
-                var y  = event.getArgument(Integer.class, 1);
-                place(sender, x, y);
-                history.add(new Audit(sender, Board.getIndex(x, y)));
+                var x  = event.getArgument("x", Integer.class);
+                var y  = event.getArgument("y", Integer.class);
+                place(player, x, y);
+                history.add(new Audit(player, Board.getIndex(x, y)));
 
                 var boardString = printBoard();  //todo json
-                clients.get(1).accept(new SimpleEventArguments(CODE_SERVER_UPDATE, 1, boardString));
-                clients.get(2).accept(new SimpleEventArguments(CODE_SERVER_UPDATE, 0, boardString));
+                var blackUpdateEvent = new SimpleEvent(CODE_SERVER_UPDATE);
+                blackUpdateEvent.addArgument("status", 1); //todo correct status
+                blackUpdateEvent.addArgument("board", boardString);
+                clients.get(1).accept(blackUpdateEvent);
+
+                var whiteUpdateEvent = new SimpleEvent(CODE_SERVER_UPDATE);
+                blackUpdateEvent.addArgument("status", 0); //todo correct status
+                blackUpdateEvent.addArgument("board", boardString);
+                clients.get(2).accept(whiteUpdateEvent);
+
                 break;
             default:
                 throw new EventException("Inavlid event code: " + event.getCode());
@@ -147,7 +161,6 @@ public class ReversiMatch implements IMatch {
         }
 
         // apply new token
-        history.add(new Audit(color, index));
         board.set(index, color);
         actionCollection.foreach(index, i -> {
             board.set(i, color);

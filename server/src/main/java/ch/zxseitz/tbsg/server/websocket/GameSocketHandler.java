@@ -40,6 +40,8 @@ public class GameSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        var player = clients.get(session.getId());
+        var body = message.getPayload();
         //todo lobby
         //todo game events
     }
