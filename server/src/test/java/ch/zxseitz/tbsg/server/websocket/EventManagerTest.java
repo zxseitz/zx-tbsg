@@ -88,25 +88,25 @@ public class EventManagerTest {
         }
     }
 
-    @Test
-    public void testPlainStringifyNoArgs() {
-        try {
-            Assert.assertEquals("{\"code\":1001,\"args\":{}}",
-                    EventManager.stringify(1001));
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
-    }
-
-    @Test
-    public void testPlainStringifyArgs() {
-        try {
-            Assert.assertEquals("{\"code\":1001,\"args\":{\"x\":2,\"y\":3}}",
-                    EventManager.stringify(1001, Map.entry("x", 2), Map.entry("y", 3)));
-        } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
-    }
+//    @Test
+//    public void testPlainStringifyNoArgs() {
+//        try {
+//            Assert.assertEquals("{\"code\":1001,\"args\":{}}",
+//                    EventManager.stringify(1001));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            Assert.fail();
+//        }
+//    }
+//
+//    @Test
+//    public void testPlainStringifyArgs() {
+//        try {
+//            Assert.assertEquals("{\"code\":1001,\"args\":{\"x\":2,\"y\":3}}",
+//                    EventManager.stringify(1001, Map.entry("x", 2), Map.entry("y", 3)));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            Assert.fail();
+//        }
+//    }
 }

@@ -8,16 +8,18 @@ public class Event implements IEvent {
     private final int code;
     private final Map<String, Object> args;
 
-    @SafeVarargs
-    public Event(int code, Map.Entry<String, Object>... args) {
+    public Event(int code) {
         this.code = code;
-        this.args = Arrays.stream(args)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        this.args = new HashMap<>();
     }
 
     @Override
     public int getCode() {
         return code;
+    }
+
+    public void addArgument(String name, Object value) {
+        args.put(name, value);
     }
 
     @Override

@@ -23,15 +23,17 @@ public class ReversiMatch implements IMatch {
     public static final int CODE_SERVER_UPDATE = 2110;
 
     private final String id;
+    private final IClient black, white;
     private final List<Audit> history;
     private final Board board;
     private final ActionCollection actionCollection;
-    private IClient black, white;
 
     int state;  //accessible for testing
 
-    public ReversiMatch(String id, Board board) {
+    public ReversiMatch(String id, IClient black, IClient white, Board board) {
         this.id = id;
+        this.black = black;
+        this.white = white;
         this.board = board;
         this.history = new ArrayList<>(60);
         this.actionCollection = new ActionCollection();
@@ -43,18 +45,7 @@ public class ReversiMatch implements IMatch {
     }
 
     @Override
-    public void connect(IClient client, int pos) {
-        if (pos == 1 && black == null) {
-            black = client;
-        } else if(pos == 2 && white == null) {
-            white = client;
-        } else {
-            throw new IllegalArgumentException("Invalid client position: " + pos);
-        }
-    }
-
-    @Override
-    public void disconnect(IClient client) {
+    public void resign(IClient client) {
         //todo
     }
 
@@ -118,15 +109,17 @@ public class ReversiMatch implements IMatch {
     }
 
     private IEvent createInitEvent(int color) {
-        return new Event(CODE_SERVER_INIT,
-                Map.entry("color", color),
-                Map.entry("board", board));
+        var event = new Event(CODE_SERVER_INIT);
+        event.addArgument("color", color);
+        event.addArgument("board", board);
+        return event;
     }
 
     private IEvent createUpdateEvent(int status) {
-        return new Event(CODE_SERVER_UPDATE,
-                Map.entry("status", status),
-                Map.entry("board", board));
+        var event = new Event(CODE_SERVER_UPDATE);
+        event.addArgument("status", status);
+        event.addArgument("board", board);
+        return event;
     }
 
     /**

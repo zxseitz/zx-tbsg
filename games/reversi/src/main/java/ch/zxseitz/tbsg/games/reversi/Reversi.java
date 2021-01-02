@@ -5,6 +5,7 @@ import ch.zxseitz.tbsg.games.reversi.core.Board;
 import ch.zxseitz.tbsg.games.reversi.core.ReversiMatch;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 
 @TbsgGame("reversi")
@@ -14,8 +15,16 @@ public class Reversi implements IGame {
     }
 
     @Override
-    public IMatch createMatch() {
-        return new ReversiMatch(createMatchId(), new Board());
+    public IMatch createMatch(List<IClient> clients) {
+        if (clients.size() != 2) {
+            throw new IllegalArgumentException("Two clients are needed to create a match, given " + clients.size());
+        }
+        var black = clients.get(0);
+        var white = clients.get(1);
+        if (black == null || white == null) {
+            throw new IllegalArgumentException("Clients contains null refs");
+        }
+        return new ReversiMatch(createMatchId(), black, white, new Board());
     }
 
     @Override
