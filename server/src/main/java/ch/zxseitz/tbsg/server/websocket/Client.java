@@ -1,6 +1,7 @@
 package ch.zxseitz.tbsg.server.websocket;
 
 import ch.zxseitz.tbsg.games.IClient;
+import ch.zxseitz.tbsg.games.IEvent;
 import ch.zxseitz.tbsg.server.model.User;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -43,9 +44,13 @@ public class Client implements IClient {
         return user;
     }
 
-    @Override
     public void send(String message) throws IOException {
         session.sendMessage(new TextMessage(message));
+    }
+
+    @Override
+    public void invoke(IEvent event) {
+
     }
 
     public Set<Client> getChallenges() {

@@ -19,11 +19,6 @@ public class Reversi implements IGame {
     }
 
     @Override
-    public IEvent parse(IClient sender, String prefix, String body) throws EventException {
-        return null;
-    }
-
-    @Override
     public InputStream readFile(String path) {
         return getClass().getClassLoader().getResourceAsStream(path);
     }

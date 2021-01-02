@@ -32,7 +32,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         gameManager.foreachGame(proxy -> {
             var path = String.join("/", "/socket/v1/games", proxy.getName());
-            registry.addHandler(new GameSocketHandler(proxy), path)
+            registry.addHandler(new GameSocketHandler(new Lobby(), proxy), path)
                     .setAllowedOrigins("*")  // handles unexpected response code 403
                     .addInterceptors(
                             new HttpSessionHandshakeInterceptor() {

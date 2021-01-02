@@ -1,12 +1,11 @@
 package ch.zxseitz.tbsg.games;
 
-import java.util.function.Consumer;
-
 public interface IMatch {
     String getId();
     void init();
-    boolean validatePlayer(int player);
-    void connect(int player, Consumer<IEvent> handler);
-    void disconnect(int player);
-    void action(int player, IEvent event) throws EventException, GameException;
+    void connect(IClient client, int pos) throws GameException;
+    void disconnect(IClient client) throws GameException;
+    int getClientPos(IClient client);
+    IClient getClient(int pos);
+    void action(IClient sender, IEvent event) throws EventException, GameException;
 }

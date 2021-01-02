@@ -1,13 +1,9 @@
 package ch.zxseitz.tbsg.server.websocket;
 
-import ch.zxseitz.tbsg.games.IMatch;
 import ch.zxseitz.tbsg.server.games.GameProxy;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.CloseStatus;
@@ -15,90 +11,35 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.util.*;
+import java.util.function.BiConsumer;
+
 public class GameSocketHandler extends TextWebSocketHandler {
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     private final Logger logger;
     private final GameProxy proxy;
-    private final Map<String, Client> clients;
-    private final Map<String, IMatch> matches;
+    private final Lobby lobby;
+    private final Map<Integer, BiConsumer<Client, ObjectNode>> clientEvents;
 
-    public GameSocketHandler(GameProxy proxy) {
+    public GameSocketHandler(Lobby lobby, GameProxy proxy) {
         this.logger = LoggerFactory.getLogger(GameSocketHandler.class.getName() + ":" + proxy.getName());
         this.proxy = proxy;
-        this.clients = new ConcurrentHashMap<>();
-        this.matches = new ConcurrentHashMap<>();
-    }
-
-    private void criticalPlayerSection(Callable<Void> action, Client... clients) throws Exception {
-        var stream = Arrays.stream(clients).sorted();  // prevent deadlocks
-        stream.forEach(Client::lock);
-        try {
-            action.call();
-        } finally {
-            stream.forEach(Client::unlock);
-        }
+        this.lobby = lobby;
+        this.clientEvents = new TreeMap<>();
     }
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        var client = clients.get(session.getId());
-        var event = EventManager.parse(message.getPayload());
-
-        switch (event.getCode()) {
-            case EventManager.CODE_CHALLENGE: {
-                var opponentId = event.getArgument("opponent", String.class);
-                if (opponentId != null) {
-                    var opponent = clients.get(opponentId);
-                    if (opponent != null) {
-                        criticalPlayerSection(() -> {
-                            client.getChallenges().add(opponent);
-                            opponent.send(EventManager.stringify(EventManager.CODE_CHALLENGE,
-                                    Map.entry("opponent", client.getID())));
-                            return null;
-                        }, client, opponent);
-                    }
-                }
-                break;
+        var client = lobby.getClients().get(session.getId());
+        var node = mapper.readTree(message.getPayload());
+        var codeNode = node.get("code");
+        var argsNode = node.get("args");
+        if (codeNode != null && codeNode.isInt() && argsNode != null && argsNode.isObject()) {
+            var clientEvent = clientEvents.get(codeNode.intValue());
+            if (clientEvent != null) {
+                clientEvent.accept(client, (ObjectNode) argsNode);
             }
-            case EventManager.CODE_CHALLENGE_ABORT: {
-                var opponentId = event.getArgument("opponent", String.class);
-                if (opponentId != null) {
-                    var opponent = clients.get(opponentId);
-                    if (opponent != null) {
-                        criticalPlayerSection(() -> {
-                            if (client.getChallenges().remove(opponent)) {
-                                opponent.send(EventManager.stringify(EventManager.CODE_CHALLENGE_ABORT,
-                                        Map.entry("opponent", client.getID())));
-                            }
-                            return null;
-                        }, client, opponent);
-                    }
-                }
-                break;
-            }
-            case EventManager.CODE_CHALLENGE_ACCEPT: {
-                //todo init match
-                break;
-            }
-            case EventManager.CODE_CHALLENGE_DECLINE: {
-                var opponentId = event.getArgument("opponent", String.class);
-                if (opponentId != null) {
-                    var opponent = clients.get(opponentId);
-                    if (opponent != null) {
-                        criticalPlayerSection(() -> {
-                            if (opponent.getChallenges().remove(client)) {
-                                opponent.send(EventManager.stringify(EventManager.CODE_CHALLENGE_DECLINE,
-                                        Map.entry("opponent", client.getID())));
-                            }
-                            return null;
-                        }, client, opponent);
-                    }
-                }
-                break;
-            }
-            default:
-                //todo game events
-                client.send(EventManager.stringify(0,
-                        Map.entry("error", "unknown event code" + event.getCode())));
         }
     }
 
@@ -106,14 +47,14 @@ public class GameSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         logger.info("New websocket client: {}", session.getId());
         // todo: read auth infos
-        var player = new Client(session);
-        clients.put(session.getId(), player);
+        var client = new Client(session);
+        lobby.getClients().putIfAbsent(session.getId(), client);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         logger.info("Websocket client disconnected: {}", session.getId());
-        var player = clients.remove(session.getId());
-        //todo handle disconnect
+        var client = lobby.getClients().remove(session.getId());
+        //todo abort challenges and matches
     }
 }

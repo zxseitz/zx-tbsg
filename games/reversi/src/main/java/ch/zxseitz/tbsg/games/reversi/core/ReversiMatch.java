@@ -7,7 +7,6 @@ import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlayerException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.ReversiException;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class ReversiMatch implements IMatch {
     public static final int STATE_UNDEFINED = -1;
@@ -27,7 +26,8 @@ public class ReversiMatch implements IMatch {
     private final List<Audit> history;
     private final Board board;
     private final ActionCollection actionCollection;
-    private final Map<Integer, Consumer<IEvent>> clients;
+    private IClient black, white;
+
     int state;  //accessible for testing
 
     public ReversiMatch(String id, Board board) {
@@ -35,7 +35,6 @@ public class ReversiMatch implements IMatch {
         this.board = board;
         this.history = new ArrayList<>(60);
         this.actionCollection = new ActionCollection();
-        this.clients = new TreeMap<>();
     }
 
     @Override
@@ -44,24 +43,29 @@ public class ReversiMatch implements IMatch {
     }
 
     @Override
-    public boolean validatePlayer(int player) {
-        return player > 0 && player <= 2;
+    public void connect(IClient client, int pos) {
+        if (pos == 1 && black == null) {
+            black = client;
+        } else if(pos == 2 && white == null) {
+            white = client;
+        } else {
+            throw new IllegalArgumentException("Invalid client position: " + pos);
+        }
     }
 
     @Override
-    public void connect(int player, Consumer<IEvent> handler) {
-        if (!validatePlayer(player) || handler == null) {
-            throw new IllegalArgumentException("client id is smaller than 1 or grater than 2 or handler is null");
-        }
-        clients.putIfAbsent(player, handler);
+    public void disconnect(IClient client) {
+        //todo
     }
 
     @Override
-    public void disconnect(int player) {
-        var handler = clients.remove(player);
-        if (handler != null) {
-            clients.get(3 - player).accept(new SimpleEvent(CODE_SERVER_OPPONENT_DISCONNECTED));
-        }
+    public int getClientPos(IClient client) {
+        return client.equals(black) ? 1 : client.equals(white) ? 2 : -1;
+    }
+
+    @Override
+    public IClient getClient(int pos) {
+        return pos == 1 ? black : pos == 2 ? white : null;
     }
 
     @Override
@@ -80,41 +84,49 @@ public class ReversiMatch implements IMatch {
 
         state = STATE_NEXT_BLACK;
 
-        var boardString = printBoard();  //todo json
-        var blackInitEvent = new SimpleEvent(CODE_SERVER_INIT);
-        blackInitEvent.addArgument("color", 1);
-        blackInitEvent.addArgument("board", boardString);
-        clients.get(1).accept(blackInitEvent);
-        var whiteInitEvent = new SimpleEvent(CODE_SERVER_INIT);
-        blackInitEvent.addArgument("color", 0);
-        blackInitEvent.addArgument("board", boardString);
-        clients.get(2).accept(whiteInitEvent);
+        black.invoke(createInitEvent(1));
+        white.invoke(createInitEvent(2));
     }
 
+//    @ClientEvent(CODE_PLAYER_PLACE)
+//    public void placeEvent(IClient sender, @EventArg("x") int x, @EventArg("y") int y) throws GameException {
+//        // todo player
+//        place(clientPos, x, y);
+//        history.add(new Audit(clientPos, Board.getIndex(x, y)));
+//        black.invoke(createUpdateEvent(1)); //todo correct status
+//        white.invoke(createUpdateEvent(0)); //todo correct status
+//    }
+
     @Override
-    public void action(int player, IEvent event) throws EventException, GameException {
+    public void action(IClient sender, IEvent event) throws EventException, GameException {
+        var clientPos = getClientPos(sender);
+        if (clientPos < 0) {
+            throw new EventException("Client " + sender.getID() + " is not a member of match " + id);
+        }
         switch (event.getCode()) {
             case CODE_PLAYER_PLACE:
                 var x  = event.getArgument("x", Integer.class);
                 var y  = event.getArgument("y", Integer.class);
-                place(player, x, y);
-                history.add(new Audit(player, Board.getIndex(x, y)));
-
-                var boardString = printBoard();  //todo json
-                var blackUpdateEvent = new SimpleEvent(CODE_SERVER_UPDATE);
-                blackUpdateEvent.addArgument("status", 1); //todo correct status
-                blackUpdateEvent.addArgument("board", boardString);
-                clients.get(1).accept(blackUpdateEvent);
-
-                var whiteUpdateEvent = new SimpleEvent(CODE_SERVER_UPDATE);
-                blackUpdateEvent.addArgument("status", 0); //todo correct status
-                blackUpdateEvent.addArgument("board", boardString);
-                clients.get(2).accept(whiteUpdateEvent);
-
+                place(clientPos, x, y);
+                history.add(new Audit(clientPos, Board.getIndex(x, y)));
+                black.invoke(createUpdateEvent(1)); //todo correct status
+                white.invoke(createUpdateEvent(0)); //todo correct status
                 break;
             default:
-                throw new EventException("Inavlid event code: " + event.getCode());
+                throw new EventException("Invalid event code: " + event.getCode());
         }
+    }
+
+    private IEvent createInitEvent(int color) {
+        return new Event(CODE_SERVER_INIT,
+                Map.entry("color", color),
+                Map.entry("board", board));
+    }
+
+    private IEvent createUpdateEvent(int status) {
+        return new Event(CODE_SERVER_UPDATE,
+                Map.entry("status", status),
+                Map.entry("board", board));
     }
 
     /**
@@ -123,15 +135,15 @@ public class ReversiMatch implements IMatch {
      * @return <code>1</code> black's turn, <code>2</code> white's turn,
      *   <code>10</code> tie, <code>11</code> black won or <code>12</code> white won.
      */
-    public int getState() {
+    int getState() {
         return state;
     }
 
-    public List<Audit> getHistory() {
+    List<Audit> getHistory() {
         return history;
     }
 
-    public String getColorName(int color) {
+    String getColorName(int color) {
         return color == 1 ? "black" : color == 2 ? "white" : "unknown";
     }
 
@@ -145,7 +157,7 @@ public class ReversiMatch implements IMatch {
      * @throws InvalidPlaceException if the place action is not valid
      * @throws InvalidFieldException if the field position is invalid
      */
-    protected void place(int color, int x, int y) throws ReversiException {
+    void place(int color, int x, int y) throws ReversiException {
         var opponentColor =  3 - color;
         // check current state
         if (state >= STATE_TIE) {

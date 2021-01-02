@@ -1,8 +1,9 @@
 package ch.zxseitz.tbsg.server.websocket;
 
+import ch.zxseitz.tbsg.games.Event;
 import ch.zxseitz.tbsg.games.EventException;
 import ch.zxseitz.tbsg.games.IEvent;
-import ch.zxseitz.tbsg.games.SimpleEvent;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,19 +24,21 @@ public final class EventManager {
         try {
             var node = mapper.readTree(json);
             var codeNode = node.get("code");
-            if (codeNode == null) {
+            if (codeNode == null || !codeNode.isInt()) {
                 throw new EventException("Missing event code");
             }
-            var event = new SimpleEvent(codeNode.intValue());
             var argsNode = node.get("args");
             if (argsNode != null) {
+                var args = new Map.Entry[argsNode.size()];
+                var i = 0;
                 var it = argsNode.fields();
                 while (it.hasNext()) {
                     var arg = it.next();
-                    event.addArgument(arg.getKey(), mapper.convertValue(arg.getValue(), Object.class));
+                    args[i++] = Map.entry(arg.getKey(), mapper.convertValue(arg.getValue(), Object.class));
                 }
+                return new Event(codeNode.intValue(), args);
             }
-            return event;
+            return new Event(codeNode.intValue());
         } catch (JsonProcessingException e) {
             throw new EventException("Malformed json string: " + e.getMessage());
         }
