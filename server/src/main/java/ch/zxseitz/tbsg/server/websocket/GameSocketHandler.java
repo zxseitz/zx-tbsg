@@ -30,6 +30,14 @@ public class GameSocketHandler extends TextWebSocketHandler {
         this.clients = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Performs a critical section on several locks
+     *
+     * @param callable critical section
+     * @param locks list of lock
+     * @return critical section return value
+     * @throws Exception if an exception occurs during the critical section
+     */
     @SafeVarargs
     private static <T, L> T critical(Callable<T> callable, ILockable<L>... locks) throws Exception {
         var sorted = Arrays.stream(locks).sorted().collect(Collectors.toList());  //prevent deadlocks
@@ -41,6 +49,11 @@ public class GameSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * Handles client connection
+     *
+     * @param session client websocket session
+     */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         logger.info("New websocket client: {}", session.getId());
@@ -49,6 +62,12 @@ public class GameSocketHandler extends TextWebSocketHandler {
         clients.put(session.getId(), client);
     }
 
+    /**
+     * Handles client disconnection
+     *
+     * @param session client websocket session
+     * @param status close status
+     */
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         logger.info("Websocket client disconnected: {}", session.getId());
@@ -68,7 +87,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     var members = (Client[]) critical(() -> {
                         match.get().resign(client);
                         return match.get().getClients();
-                    }, match);
+                    }, match);  // return match lock to prevent deadlock with game events
                     for (var member : members) {
                         critical(() -> {
                             member.setMatch(null);
@@ -83,6 +102,12 @@ public class GameSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * Handles client events
+     *
+     * @param session client websocket session
+     * @param message client event
+     */
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) {
         var client = clients.get(session.getId());
