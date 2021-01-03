@@ -14,12 +14,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-public class Client implements IClient, Comparable<Client> {
+public class Client implements IClient, ILockable<Client> {
     private final WebSocketSession session;
     private final User user;
     private final Lock lock;
 
-    private final Set<Locker<Client>> challenges;
+    private final Set<Client> challenges;
     private Locker<IMatch> matchLocker;
 
     public Client(WebSocketSession session) {
@@ -56,15 +56,15 @@ public class Client implements IClient, Comparable<Client> {
         }
     }
 
-//    void lock() {
-//        lock.lock();
-//    }
-//
-//    void unlock() {
-//        lock.unlock();
-//    }
+    public void lock() {
+        lock.lock();
+    }
 
-    Set<Locker<Client>> getChallenges() {
+    public void unlock() {
+        lock.unlock();
+    }
+
+    Set<Client> getChallenges() {
         return challenges;
     }
 
@@ -78,7 +78,7 @@ public class Client implements IClient, Comparable<Client> {
 
     @Override
     public int compareTo(Client client) {
-        return getId().compareTo(client.getId());
+        return getId().compareTo(getId());
     }
 
     @Override
