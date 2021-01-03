@@ -1,10 +1,9 @@
 package ch.zxseitz.tbsg.games;
 
-public interface IMatch {
+public interface IMatch extends Comparable<IMatch> {
     String getId();
-    int getClientPos(IClient client);
-    IClient getClient(int pos);
-    void init() throws ClientException;
+    IClient[] getClients();
+    void init() throws ClientException, GameException;
     void resign(IClient client) throws ClientException, GameException;
-    void action(IClient sender, IEvent event) throws ClientException, EventException, GameException;
+    void invoke(IClient sender, IEvent event) throws ClientException, EventException, GameException;
 }

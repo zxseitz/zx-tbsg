@@ -3,6 +3,7 @@ package ch.zxseitz.tbsg.server.websocket;
 import ch.zxseitz.tbsg.games.ClientException;
 import ch.zxseitz.tbsg.games.IClient;
 import ch.zxseitz.tbsg.games.IEvent;
+import ch.zxseitz.tbsg.games.IMatch;
 import ch.zxseitz.tbsg.server.model.User;
 
 import java.io.IOException;
@@ -18,7 +19,8 @@ public class Client implements IClient, Comparable<Client> {
     private final User user;
     private final Lock lock;
 
-    private final Set<Client> challenges;
+    private final Set<Locker<Client>> challenges;
+    private Locker<IMatch> matchLocker;
 
     public Client(WebSocketSession session) {
         this(session, null);
@@ -54,16 +56,24 @@ public class Client implements IClient, Comparable<Client> {
         }
     }
 
-    void lock() {
-        lock.lock();
-    }
+//    void lock() {
+//        lock.lock();
+//    }
+//
+//    void unlock() {
+//        lock.unlock();
+//    }
 
-    void unlock() {
-        lock.unlock();
-    }
-
-    Set<Client> getChallenges() {
+    Set<Locker<Client>> getChallenges() {
         return challenges;
+    }
+
+    Locker<IMatch> getMatch() {
+        return matchLocker;
+    }
+
+    void setMatch(Locker<IMatch> match) {
+        this.matchLocker = match;
     }
 
     @Override
