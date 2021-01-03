@@ -6,7 +6,10 @@ import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlaceException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlayerException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.ReversiException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ReversiMatch implements IMatch {
     public static final int STATE_UNDEFINED = -1;
@@ -60,7 +63,7 @@ public class ReversiMatch implements IMatch {
     }
 
     @Override
-    public void init() {
+    public void init() throws ClientException {
         // set board initial state (othello)
         board.set(27, 2);
         board.set(28, 1);
@@ -89,15 +92,15 @@ public class ReversiMatch implements IMatch {
 //    }
 
     @Override
-    public void action(IClient sender, IEvent event) throws EventException, GameException {
+    public void action(IClient sender, IEvent event) throws ClientException, EventException, GameException {
         var clientPos = getClientPos(sender);
         if (clientPos < 0) {
-            throw new EventException("Client " + sender.getID() + " is not a member of match " + id);
+            throw new EventException("Client " + sender.getId() + " is not a member of match " + id);
         }
         switch (event.getCode()) {
             case CODE_PLAYER_PLACE:
-                var x  = event.getArgument("x", Integer.class);
-                var y  = event.getArgument("y", Integer.class);
+                var x = event.getArgument("x", Integer.class);
+                var y = event.getArgument("y", Integer.class);
                 place(clientPos, x, y);
                 history.add(new Audit(clientPos, Board.getIndex(x, y)));
                 black.invoke(createUpdateEvent(1)); //todo correct status
@@ -126,7 +129,7 @@ public class ReversiMatch implements IMatch {
      * Returns the current state of this match.
      *
      * @return <code>1</code> black's turn, <code>2</code> white's turn,
-     *   <code>10</code> tie, <code>11</code> black won or <code>12</code> white won.
+     * <code>10</code> tie, <code>11</code> black won or <code>12</code> white won.
      */
     int getState() {
         return state;
@@ -144,14 +147,14 @@ public class ReversiMatch implements IMatch {
      * Places a new token of a player on a field and updates the internal state.
      *
      * @param color acteur
-     * @param x      x-coordinate
-     * @param y      y-coordinate
+     * @param x     x-coordinate
+     * @param y     y-coordinate
      * @throws InvalidPlayerException if the player is not a member of this match
-     * @throws InvalidPlaceException if the place action is not valid
-     * @throws InvalidFieldException if the field position is invalid
+     * @throws InvalidPlaceException  if the place action is not valid
+     * @throws InvalidFieldException  if the field position is invalid
      */
     void place(int color, int x, int y) throws ReversiException {
-        var opponentColor =  3 - color;
+        var opponentColor = 3 - color;
         // check current state
         if (state >= STATE_TIE) {
             throw new InvalidPlaceException(String.format("Match [%s] is already finished", id));

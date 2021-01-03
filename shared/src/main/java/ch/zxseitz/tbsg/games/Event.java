@@ -1,8 +1,8 @@
 package ch.zxseitz.tbsg.games;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 public class Event implements IEvent {
     private final int code;
@@ -42,5 +42,22 @@ public class Event implements IEvent {
     @Override
     public void foreachArgument(BiConsumer<String, Object> consumer) {
         args.forEach(consumer);
+    }
+
+    @Override
+    public String toString() {
+        var sb = new StringBuilder();
+        sb.append("(").append(code).append(" [");
+        var it = args.entrySet().iterator();
+        if (it.hasNext()) {
+            var firstArg = it.next();
+            sb.append(firstArg.getKey()).append(" ").append(firstArg.getValue());
+        }
+        while (it.hasNext()) {
+            var arg = it.next();
+            sb.append(" ,").append(arg.getKey()).append(" ").append(arg.getValue());
+        }
+        sb.append("])");
+        return sb.toString();
     }
 }

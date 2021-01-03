@@ -1,10 +1,7 @@
 package ch.zxseitz.tbsg.games;
 
-import java.io.IOException;
-
-public interface IClient extends Comparable<IClient> {
-    String getID();
+public interface IClient {
+    String getId();
     String getName();
-    void invoke(IEvent event);
-//    void send(String message) throws IOException;
+    void invoke(IEvent event) throws ClientException;
 }

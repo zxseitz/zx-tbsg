@@ -1,6 +1,8 @@
 package ch.zxseitz.tbsg.games;
 
-public class GameException extends Exception {
+import ch.zxseitz.tbsg.TbsgException;
+
+public class GameException extends TbsgException {
     private String game;
 
     public GameException(String game, String message) {

@@ -1,5 +1,6 @@
 package ch.zxseitz.tbsg.server.websocket;
 
+import ch.zxseitz.tbsg.games.ClientException;
 import ch.zxseitz.tbsg.games.IClient;
 import ch.zxseitz.tbsg.games.IEvent;
 import ch.zxseitz.tbsg.server.model.User;
@@ -12,7 +13,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Client implements IClient {
+public class Client implements IClient, Comparable<Client> {
     private final WebSocketSession session;
     private final User user;
     private final Lock lock;
@@ -31,7 +32,7 @@ public class Client implements IClient {
     }
 
     @Override
-    public String getID() {
+    public String getId() {
         return session.getId();
     }
 
@@ -44,13 +45,13 @@ public class Client implements IClient {
         return user;
     }
 
-    public void send(String message) throws IOException {
-        session.sendMessage(new TextMessage(message));
-    }
-
     @Override
-    public void invoke(IEvent event) {
-
+    public void invoke(IEvent event) throws ClientException {
+        try {
+            session.sendMessage(new TextMessage(EventManager.stringify(event)));
+        } catch (IOException e) {
+            throw new ClientException("Cannot send event " + event.toString() + " to client " + toString(), e);
+        }
     }
 
     public Set<Client> getChallenges() {
@@ -66,8 +67,8 @@ public class Client implements IClient {
     }
 
     @Override
-    public int compareTo(IClient o) {
-        return getID().compareTo(o.getID());
+    public int compareTo(Client client) {
+        return getId().compareTo(client.getId());
     }
 
     @Override

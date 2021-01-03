@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class EventManager {
+    public static final int CODE_ERROR = 0;
     public static final int CODE_CHALLENGE = 1001;
     public static final int CODE_CHALLENGE_ABORT = 1002;
     public static final int CODE_CHALLENGE_ACCEPT = 1003;
@@ -18,7 +19,7 @@ public final class EventManager {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private EventManager() {
-
+        // singleton
     }
 
     public static IEvent parse(String json) throws JsonProcessingException, EventException {
@@ -50,27 +51,27 @@ public final class EventManager {
         return mapper.writeValueAsString(node);
     }
 
-    public static String createChallengeEvent(Client opponent) throws JsonProcessingException {
-        var node = mapper.createObjectNode();
-        node.put("code", CODE_CHALLENGE);
-        var args = node.putObject("args");
-        args.put("opponent", opponent.getID());
-        return mapper.writeValueAsString(node);
+    public static IEvent createChallengeEvent(Client opponent) {
+        var event = new Event(CODE_CHALLENGE);
+        event.addArgument("opponent", opponent.getId());
+        return event;
     }
 
-    public static String createChallengeAbortEvent(Client opponent) throws JsonProcessingException {
-        var node = mapper.createObjectNode();
-        node.put("code", CODE_CHALLENGE_ABORT);
-        var args = node.putObject("args");
-        args.put("opponent", opponent.getID());
-        return mapper.writeValueAsString(node);
+    public static IEvent createChallengeAbortEvent(Client opponent) {
+        var event = new Event(CODE_CHALLENGE_ABORT);
+        event.addArgument("opponent", opponent.getId());
+        return event;
     }
 
-    public static String createDeclineEvent(Client opponent) throws JsonProcessingException {
-        var node = mapper.createObjectNode();
-        node.put("code", CODE_CHALLENGE_DECLINE);
-        var args = node.putObject("args");
-        args.put("opponent", opponent.getID());
-        return mapper.writeValueAsString(node);
+    public static IEvent createChallengeDeclineEvent(Client opponent) {
+        var event = new Event(CODE_CHALLENGE_DECLINE);
+        event.addArgument("opponent", opponent.getId());
+        return event;
+    }
+
+    public static IEvent createErrorEvent(String reason) {
+        var event = new Event(CODE_ERROR);
+        event.addArgument("reason", reason);
+        return event;
     }
 }

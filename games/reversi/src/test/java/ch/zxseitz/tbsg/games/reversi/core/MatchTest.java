@@ -50,20 +50,25 @@ public class MatchTest {
 
     @Test
     public void testInit() {
-        var match = new ReversiMatch("match", black, white, board);
-        match.init();
+        try {
+            var match = new ReversiMatch("match", black, white, board);
+            match.init();
 
-        verify(board, times(1)).set(27, Board.FIELD_WHITE);
-        verify(board, times(1)).set(28, Board.FIELD_BLACK);
-        verify(board, times(1)).set(35, Board.FIELD_BLACK);
-        verify(board, times(1)).set(36, Board.FIELD_WHITE);
+            verify(board, times(1)).set(27, Board.FIELD_WHITE);
+            verify(board, times(1)).set(28, Board.FIELD_BLACK);
+            verify(board, times(1)).set(35, Board.FIELD_BLACK);
+            verify(board, times(1)).set(36, Board.FIELD_WHITE);
 
-        verify(actionCollection, times(1)).add(19, 27);
-        verify(actionCollection, times(1)).add(26, 27);
-        verify(actionCollection, times(1)).add(37, 36);
-        verify(actionCollection, times(1)).add(44, 36);
+            verify(actionCollection, times(1)).add(19, 27);
+            verify(actionCollection, times(1)).add(26, 27);
+            verify(actionCollection, times(1)).add(37, 36);
+            verify(actionCollection, times(1)).add(44, 36);
 
-        Assert.assertEquals(ReversiMatch.STATE_NEXT_BLACK, match.getState());
+            Assert.assertEquals(ReversiMatch.STATE_NEXT_BLACK, match.getState());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
     }
 
     @Test
@@ -137,7 +142,7 @@ public class MatchTest {
             Assert.fail();
         } catch (InvalidFieldException ife) {
             Assert.assertEquals("Invalid place action of black on field (-1, -1)" +
-            "in match [match]", ife.getMessage());
+                    "in match [match]", ife.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();
@@ -149,7 +154,7 @@ public class MatchTest {
         doReturn(true).when(actionCollection).containsIndex(26);
         doReturn(true).when(board).covers(2, 3);
 
-        var field = new int[] {
+        var field = new int[]{
                 0, 0, 2, 2, 2, 2, 0, 0,
                 0, 0, 2, 2, 2, 1, 0, 0,
                 1, 0, 1, 1, 2, 2, 2, 0,
@@ -208,7 +213,7 @@ public class MatchTest {
         doReturn(true).when(actionCollection).containsIndex(26);
         doReturn(true).when(board).covers(2, 3);
 
-        var field = new int[] {
+        var field = new int[]{
                 0, 0, 2, 2, 2, 2, 0, 0,
                 0, 0, 2, 2, 2, 1, 0, 0,
                 1, 0, 1, 1, 2, 2, 2, 0,
@@ -268,7 +273,7 @@ public class MatchTest {
         doReturn(true).when(actionCollection).containsIndex(26);
         doReturn(true).when(board).covers(2, 3);
 
-        var field = new int[] {
+        var field = new int[]{
                 0, 0, 2, 2, 2, 2, 0, 0,
                 0, 0, 2, 2, 2, 1, 0, 0,
                 1, 0, 1, 1, 2, 2, 2, 0,
@@ -303,7 +308,7 @@ public class MatchTest {
         doReturn(true).when(actionCollection).containsIndex(26);
         doReturn(true).when(board).covers(2, 3);
 
-        var field = new int[] {
+        var field = new int[]{
                 0, 0, 2, 2, 2, 2, 0, 0,
                 0, 0, 2, 2, 2, 1, 0, 0,
                 1, 0, 1, 1, 2, 2, 2, 0,
@@ -338,7 +343,7 @@ public class MatchTest {
         doReturn(true).when(actionCollection).containsIndex(26);
         doReturn(true).when(board).covers(2, 3);
 
-        var field = new int[] {
+        var field = new int[]{
                 0, 0, 2, 2, 2, 2, 0, 0,
                 0, 0, 2, 2, 2, 1, 0, 0,
                 1, 0, 2, 2, 2, 2, 2, 0,

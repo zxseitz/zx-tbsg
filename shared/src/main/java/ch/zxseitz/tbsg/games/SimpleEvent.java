@@ -28,4 +28,9 @@ public class SimpleEvent implements IEvent {
     public void foreachArgument(BiConsumer<String, Object> consumer) {
         //ignore
     }
+
+    @Override
+    public String toString() {
+        return  "(" + code + " [])";
+    }
 }
