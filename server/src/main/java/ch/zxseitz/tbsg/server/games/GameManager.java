@@ -33,7 +33,7 @@ public class GameManager {
             gameStream.forEach(gamePath -> {
                 logger.info("Scanning jar file: {}", gamePath); //todo debug
                 try {
-                    var jar = new JarLoader(gamePath, Thread.currentThread().getContextClassLoader());
+                    var jar = new JarClassLoader(gamePath, Thread.currentThread().getContextClassLoader());
                     var manifest = jar.getManifest();
                     var gameClassName = manifest.getMainAttributes().getValue(gameClassManifest);
                     if (gameClassName != null) {

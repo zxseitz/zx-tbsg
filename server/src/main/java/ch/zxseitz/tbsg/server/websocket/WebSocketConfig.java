@@ -1,6 +1,8 @@
 package ch.zxseitz.tbsg.server.websocket;
 
 import ch.zxseitz.tbsg.server.games.GameManager;
+
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
-
-import java.util.Map;
 
 @Configuration
 @EnableWebSocket
@@ -38,15 +38,17 @@ public class WebSocketConfig implements WebSocketConfigurer {
                             new HttpSessionHandshakeInterceptor() {
                                 @Override
                                 public void afterHandshake(ServerHttpRequest request,
-                                                           ServerHttpResponse response, WebSocketHandler wsHandler,
+                                                           ServerHttpResponse response,
+                                                           WebSocketHandler wsHandler,
                                                            @Nullable Exception ex) {
                                     super.afterHandshake(request, response, wsHandler, ex);
                                 }
 
                                 @Override
                                 public boolean beforeHandshake(ServerHttpRequest request,
-                                                               ServerHttpResponse response, WebSocketHandler wsHandler,
-                                                               Map<String, Object> attributes) throws Exception {
+                                                               ServerHttpResponse response,
+                                                               WebSocketHandler wsHandler,
+                                                               Map<String, Object> attributes) {
                                     //todo attach auth infos
                                     return true;
                                 }

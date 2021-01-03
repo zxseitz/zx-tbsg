@@ -4,14 +4,14 @@ import ch.zxseitz.tbsg.games.ClientException;
 import ch.zxseitz.tbsg.games.IClient;
 import ch.zxseitz.tbsg.games.IEvent;
 import ch.zxseitz.tbsg.server.model.User;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 public class Client implements IClient, Comparable<Client> {
     private final WebSocketSession session;
@@ -54,16 +54,16 @@ public class Client implements IClient, Comparable<Client> {
         }
     }
 
-    public Set<Client> getChallenges() {
-        return challenges;
-    }
-
-    public void lock() {
+    void lock() {
         lock.lock();
     }
 
-    public void unlock() {
+    void unlock() {
         lock.unlock();
+    }
+
+    Set<Client> getChallenges() {
+        return challenges;
     }
 
     @Override
