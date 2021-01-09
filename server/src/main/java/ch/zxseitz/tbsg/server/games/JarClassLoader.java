@@ -14,16 +14,16 @@ import java.util.function.Consumer;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
-public class JarLoader extends ClassLoader {
+public class JarClassLoader extends ClassLoader {
     private final Map<String, byte[]> classes;
     private final Map<String, byte[]> resources;
     private final Manifest manifest;
 
-    public JarLoader(Path jar) throws IOException {
+    public JarClassLoader(Path jar) throws IOException {
         this(jar, getSystemClassLoader());
     }
 
-    public JarLoader(Path jar, ClassLoader parent) throws IOException {
+    public JarClassLoader(Path jar, ClassLoader parent) throws IOException {
         super(parent);
         if (jar == null) {
             throw new IllegalArgumentException("jar path is null");

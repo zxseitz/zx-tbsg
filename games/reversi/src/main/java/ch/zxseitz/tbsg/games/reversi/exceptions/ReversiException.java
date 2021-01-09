@@ -1,7 +1,10 @@
 package ch.zxseitz.tbsg.games.reversi.exceptions;
 
-public class ReversiException extends Exception {
+import ch.zxseitz.tbsg.games.GameException;
+import ch.zxseitz.tbsg.games.reversi.Reversi;
+
+public class ReversiException extends GameException {
     public ReversiException(String message) {
-        super(message);
+        super("reversi", message);
     }
 }

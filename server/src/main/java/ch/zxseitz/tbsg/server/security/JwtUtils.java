@@ -2,14 +2,20 @@ package ch.zxseitz.tbsg.server.security;
 
 import ch.zxseitz.tbsg.server.model.User;
 
-import io.jsonwebtoken.*;
-
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +32,15 @@ public class JwtUtils {
     private final String secret;
 
     @Autowired
-    public JwtUtils(@Value("${app.apikey.location}") String apikeypath) throws IOException {
-        this.secret = Files.readString(Paths.get(apikeypath));
+    public JwtUtils(@Value("${app.apikey.location}") String apiKeyPath) throws IOException {
+        this.secret = Files.readString(Paths.get(apiKeyPath));
         logger.info("Loaded api key");
     }
 
     public String createJwt(User user) {
         var roles = user.getRoles().stream()
                 .map(GrantedAuthority::getAuthority)
-                .reduce((role1, role2) -> role1 + "," + role2).orElseGet(() -> "");
+                .reduce((role1, role2) -> role1 + "," + role2).orElse("");
         return Jwts.builder()
                 .claim("sub",user.id.toHexString())
                 .claim("roles", roles)
