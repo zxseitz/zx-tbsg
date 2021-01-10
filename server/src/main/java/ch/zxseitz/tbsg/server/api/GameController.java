@@ -35,29 +35,53 @@ public class GameController {
         return ResponseEntity.status(200).body(gameManager.listGameNames());
     }
 
-//    @GetMapping(
-//            value = "/{game}/files/{path}"
-//    )
-//    public ResponseEntity<Resource> file(@PathVariable("game") String name, @PathVariable("path") String path) {
-//        try {
-//            var gameProxy = gameManager.getGame(name);
-//            if (gameProxy != null) {
-//                var localPath = Paths.get(path);
-//                var type = MediaType.parseMediaType(Files.probeContentType(localPath));
-//                var inputStream = gameProxy.getInstance().readFile(localPath);
-//                var resource = new InputStreamResource(inputStream);
-//                var downloadName = name + "_" + path.replace('/', '.');
-//                return ResponseEntity.status(200)
-//                        .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION,
-//                                "attachment; filename=" + downloadName))
-//                        .contentType(type)
-//                        .body(resource);
-//            }
-//        } catch (Exception e) {
-//            logger.error(e.getMessage());
-//        }
-//        return ResponseEntity.status(400).build();
-//    }
+    @GetMapping(value = "/{game}/styles")
+    public ResponseEntity<Set<String>> styles(@PathVariable("game") String name) {
+        try {
+            var gameProxy = gameManager.getGame(name);
+            if (gameProxy != null) {
+                return ResponseEntity.status(200).body(gameProxy.getInstance().listStyles());
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return ResponseEntity.status(400).build();
+    }
+
+    @GetMapping(value = "/{game}/scripts")
+    public ResponseEntity<Set<String>> scripts(@PathVariable("game") String name) {
+        try {
+            var gameProxy = gameManager.getGame(name);
+            if (gameProxy != null) {
+                return ResponseEntity.status(200).body(gameProxy.getInstance().listScripts());
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return ResponseEntity.status(400).build();
+    }
+
+    @GetMapping(value = "/{game}/files/{path}")
+    public ResponseEntity<Resource> file(@PathVariable("game") String name, @PathVariable("path") String path) {
+        try {
+            var gameProxy = gameManager.getGame(name);
+            if (gameProxy != null) {
+                var localPath = Paths.get(path);
+                var type = MediaType.parseMediaType(Files.probeContentType(localPath));
+                var inputStream = gameProxy.getInstance().readFile(localPath);
+                var resource = new InputStreamResource(inputStream);
+                var downloadName = name + "_" + path.replace('/', '.');
+                return ResponseEntity.status(200)
+                        .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION,
+                                "attachment; filename=" + downloadName))
+                        .contentType(type)
+                        .body(resource);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
+        return ResponseEntity.status(400).build();
+    }
 
     @GetMapping(
             value = "/{game}/blob/{path}",

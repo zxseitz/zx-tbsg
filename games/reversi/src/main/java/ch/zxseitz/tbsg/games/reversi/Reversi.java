@@ -7,6 +7,7 @@ import ch.zxseitz.tbsg.games.reversi.core.ReversiMatch;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @TbsgGame("reversi")
@@ -31,6 +32,16 @@ public class Reversi implements IGame {
     @Override
     public InputStream readFile(Path path) {
         return getClass().getClassLoader().getResourceAsStream(path.toString());
+    }
+
+    @Override
+    public Set<String> listStyles() {
+        return Set.of("index.css");
+    }
+
+    @Override
+    public Set<String> listScripts() {
+        return Set.of("index.js");
     }
 
     @TbsgWebHook(path = "index", method = TbsgWebHook.Method.GET)
