@@ -5,13 +5,11 @@ import ch.zxseitz.tbsg.games.TbsgGame;
 import ch.zxseitz.tbsg.games.TbsgWebHook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,62 +23,35 @@ public class GameManager {
 
     private final Map<String, GameProxy> proxies;
 
-    public GameManager(@Value("${app.games}") String gameDir) {
-        proxies = new HashMap<>(1);
-
-        var gamesPath = Paths.get(gameDir);
-        try (var gameStream = Files.list(gamesPath)) {
-            gameStream.forEach(gamePath -> {
-                logger.info("Scanning jar file: {}", gamePath); //todo debug
-                try {
-                    var jar = new JarClassLoader(gamePath, Thread.currentThread().getContextClassLoader());
-                    var manifest = jar.getManifest();
-                    var gameClassName = manifest.getMainAttributes().getValue(gameClassManifest);
-                    if (gameClassName != null) {
-                        // load game class defined in manifest
-                        logger.info("Scanning game class defined in manifest: {}", gameClassName);
-                        var gameClass = jar.findClass(gameClassName);
-                        inspectGameClass(gameClass);
-                    } else {
-                        // search game class
-                        logger.info("Game class is not defined in manifest. Searching game class in jar file");
-                        jar.loadEachClass(clazz -> {
-                            logger.info("Scanning game class: {}", clazz);
-                            try {
-                                inspectGameClass(clazz);
-                            } catch (Exception e) {
-                                logger.error(e.getMessage(), e);
-                            }
-                        });
+    public GameManager() {
+        proxies = new HashMap<>(10);
+        var provider = new ClassPathScanningCandidateComponentProvider(false);
+        provider.addIncludeFilter(new AnnotationTypeFilter(TbsgGame.class));
+        provider.addIncludeFilter(new AssignableTypeFilter(IGame.class));
+        var classes = provider.findCandidateComponents(gameBasePackage);
+        for (var bean : classes) {
+            var className = bean.getBeanClassName();
+            logger.info("scanning game class {}", className); //todo debug
+            try {
+                var gameClass = Class.forName(className);
+                var gameAnnotation = gameClass.getAnnotation(TbsgGame.class);
+                var gameName = gameAnnotation.value();
+                var gameInstance = (IGame) gameClass.getConstructor().newInstance();
+                var gameProxy = new GameProxy(gameName, gameInstance);
+                for (var method : gameClass.getDeclaredMethods()) {
+                    if (method.isAnnotationPresent(TbsgWebHook.class)) {
+                        var wbAnnotation = method.getAnnotation(TbsgWebHook.class);
+                        // todo improve request method handling
+                        var webhook = wbAnnotation.method().name();
+                        gameProxy.getWebhooks().put(webhook + ":" + wbAnnotation.path(), method);
+                        logger.info("registered game {} webhook {}:{}", gameName, webhook, wbAnnotation.path());
                     }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
                 }
-            });
-        } catch (IOException ioe) {
-            logger.error(ioe.getMessage(), ioe);
-        }
-    }
-
-    private void inspectGameClass(Class<?> gameClass) throws NoSuchMethodException, InstantiationException,
-            IllegalAccessException, InvocationTargetException {
-        if (IGame.class.isAssignableFrom(gameClass)
-                && gameClass.isAnnotationPresent(TbsgGame.class)) {
-            var gameInstance = (IGame) gameClass.getConstructor().newInstance();
-            var gameAnnotation = gameClass.getAnnotation(TbsgGame.class);
-            var gameName = gameAnnotation.value();
-            var gameProxy = new GameProxy(gameName, gameInstance);
-            for (var method : gameClass.getDeclaredMethods()) {
-                if (method.isAnnotationPresent(TbsgWebHook.class)) {
-                    var annotation = method.getAnnotation(TbsgWebHook.class);
-                    // todo improve request method handling
-                    var requestMethod = annotation.method().name();
-                    gameProxy.getWebhooks().put(requestMethod + ":" + annotation.path(), method);
-                    logger.info("Registered new webhook {}:{} for game {}", requestMethod, annotation.path(), gameName);
-                }
+                proxies.put(gameName, gameProxy);
+                logger.info("registered game {}", gameName);
+            } catch (Exception e) {
+                logger.error(e.getMessage());
             }
-            proxies.put(gameName, gameProxy);
-            logger.info("Registered game {}", gameName);
         }
     }
 

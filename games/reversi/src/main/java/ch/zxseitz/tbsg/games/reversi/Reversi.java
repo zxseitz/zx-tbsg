@@ -31,21 +31,22 @@ public class Reversi implements IGame {
 
     @Override
     public InputStream readFile(Path path) {
-        return getClass().getClassLoader().getResourceAsStream(path.toString());
+//        return getClass().getClassLoader().getResourceAsStream(path.toString());
+        return null;
     }
 
     @Override
     public Set<String> listStyles() {
-        return Set.of("index.css");
+        return Set.of();
     }
 
     @Override
     public Set<String> listScripts() {
-        return Set.of("index.js");
+        return Set.of();
     }
 
-    @TbsgWebHook(path = "index", method = TbsgWebHook.Method.GET)
-    public String test(String json) {
-        return "reversi test: " + json;
-    }
+//    @TbsgWebHook(path = "index", method = TbsgWebHook.Method.GET)
+//    public String test(String json) {
+//        return "reversi test: " + json;
+//    }
 }
