@@ -1,13 +1,13 @@
 package ch.zxseitz.tbsg.server.websocket;
 
-import ch.zxseitz.tbsg.games.Event;
-import ch.zxseitz.tbsg.games.EventException;
-import ch.zxseitz.tbsg.games.IEvent;
+import ch.zxseitz.tbsg.games.*;
 
-import ch.zxseitz.tbsg.games.SimpleEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Map;
+import java.util.Set;
 
 public final class EventManager {
     public static final int CODE_ERROR = 0;
@@ -15,6 +15,7 @@ public final class EventManager {
     public static final int CODE_CHALLENGE_ABORT = 1002;
     public static final int CODE_CHALLENGE_ACCEPT = 1003;
     public static final int CODE_CHALLENGE_DECLINE = 1004;
+    public static final int CODE_LIST = 1100;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -99,6 +100,12 @@ public final class EventManager {
     public static IEvent createChallengeDeclineEvent(Client opponent) {
         var event = new Event(CODE_CHALLENGE_DECLINE);
         event.addArgument("opponent", opponent.getId());
+        return event;
+    }
+
+    public static IEvent createChallengeListEvent(Map<String, String> opponents) {
+        var event = new Event(CODE_LIST);
+        event.addArgument("opponents", opponents);
         return event;
     }
 

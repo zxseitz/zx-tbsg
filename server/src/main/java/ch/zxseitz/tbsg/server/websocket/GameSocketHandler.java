@@ -5,9 +5,7 @@ import ch.zxseitz.tbsg.games.ClientException;
 import ch.zxseitz.tbsg.games.IClient;
 import ch.zxseitz.tbsg.server.games.GameProxy;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -178,6 +176,15 @@ public class GameSocketHandler extends TextWebSocketHandler {
                         }
                         return null;
                     }, opponent);
+                    break;
+                }
+                case EventManager.CODE_LIST: {
+                    var idNames = new HashMap<String, String>();
+                    clients.values().forEach(client1 -> {
+                            idNames.put(client1.getId(), client1.getName());
+                    });
+                    idNames.remove(client.getId());
+                    client.invoke(EventManager.createChallengeListEvent(idNames));
                     break;
                 }
                 default:
