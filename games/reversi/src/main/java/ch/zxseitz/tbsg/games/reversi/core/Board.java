@@ -68,6 +68,12 @@ public class Board {
         return false;
     }
 
+    public int[] getFields() {
+        var result = new int[fields.length];
+        System.arraycopy(fields, 0, result, 0, fields.length);
+        return result;
+    }
+
     @Override
     public String toString() {
         return Arrays.toString(fields);

@@ -19,8 +19,8 @@ public class ReversiMatch implements IMatch {
     public static final int CODE_PLAYER_PLACE = 1010;
 
     public static final int CODE_SERVER_OPPONENT_DISCONNECTED = 2020;
-    public static final int CODE_SERVER_INIT = 2100;
-    public static final int CODE_SERVER_UPDATE = 2110;
+    public static final int CODE_SERVER_INIT = 2000;
+    public static final int CODE_SERVER_UPDATE = 2010;
 
     private final String id;
     private final IClient[] clients;
@@ -53,16 +53,17 @@ public class ReversiMatch implements IMatch {
 
     @Override
     public void resign(IClient sender) throws ClientException, GameException {
+        var fields = board.getFields();
         if (clients[0].equals(sender)) {
             // black resigns
             state = STATE_WON_WHITE;
-            clients[0].invoke(createUpdateEvent(0));  //todo correct status
-            clients[1].invoke(createUpdateEvent(0));  //todo correct status
+            clients[0].invoke(createUpdateEvent(0, fields));  //todo correct status
+            clients[1].invoke(createUpdateEvent(0, fields));  //todo correct status
         } else if (clients[1].equals(sender)) {
             // white resigns
             state = STATE_WON_BLACK;
-            clients[0].invoke(createUpdateEvent(0));  //todo correct status
-            clients[1].invoke(createUpdateEvent(0));  //todo correct status
+            clients[0].invoke(createUpdateEvent(0, fields));  //todo correct status
+            clients[1].invoke(createUpdateEvent(0, fields));  //todo correct status
         } else {
             throw new ReversiException("Client " + sender.getId() + " is not a member of match " + id);
         }
@@ -93,8 +94,9 @@ public class ReversiMatch implements IMatch {
 
         state = STATE_NEXT_BLACK;
 
-        clients[0].invoke(createInitEvent(1));
-        clients[1].invoke(createInitEvent(2));
+        var fields = board.getFields();
+        clients[0].invoke(createInitEvent(1, fields));
+        clients[1].invoke(createInitEvent(2, fields));
     }
 
     int getClientColor(IClient client) {
@@ -122,25 +124,26 @@ public class ReversiMatch implements IMatch {
                 var y = event.getArgument("y", Integer.class);
                 place(clientPos, x, y);
                 history.add(new Audit(clientPos, Board.getIndex(x, y)));
-                clients[0].invoke(createUpdateEvent(1)); //todo correct status
-                clients[1].invoke(createUpdateEvent(0)); //todo correct status
+                var fields = board.getFields();
+                clients[0].invoke(createUpdateEvent(1, fields)); //todo correct status
+                clients[1].invoke(createUpdateEvent(0, fields)); //todo correct status
                 break;
             default:
                 throw new EventException("Invalid event code: " + event.getCode());
         }
     }
 
-    private IEvent createInitEvent(int color) {
+    private IEvent createInitEvent(int color, int[] fields) {
         var event = new Event(CODE_SERVER_INIT);
         event.addArgument("color", color);
-        event.addArgument("board", board);
+        event.addArgument("board", fields);
         return event;
     }
 
-    private IEvent createUpdateEvent(int status) {
+    private IEvent createUpdateEvent(int status, int[] fields) {
         var event = new Event(CODE_SERVER_UPDATE);
         event.addArgument("status", status);
-        event.addArgument("board", board);
+        event.addArgument("board", fields);
         return event;
     }
 
