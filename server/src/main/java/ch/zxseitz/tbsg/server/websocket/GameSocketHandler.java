@@ -58,6 +58,10 @@ public class GameSocketHandler extends TextWebSocketHandler {
         // todo: read auth infos
         var client = new Client(session);
         clients.put(session.getId(), client);
+        try {
+            client.invoke(EventManager.createIdEvent(client));
+        } catch (Exception ignore) {
+        }
     }
 
     /**
@@ -176,15 +180,6 @@ public class GameSocketHandler extends TextWebSocketHandler {
                         }
                         return null;
                     }, opponent);
-                    break;
-                }
-                case EventManager.CODE_LIST: {
-                    var idNames = new HashMap<String, String>();
-                    clients.values().forEach(client1 -> {
-                            idNames.put(client1.getId(), client1.getName());
-                    });
-                    idNames.remove(client.getId());
-                    client.invoke(EventManager.createChallengeListEvent(idNames));
                     break;
                 }
                 default:

@@ -7,15 +7,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Map;
-import java.util.Set;
 
 public final class EventManager {
     public static final int CODE_ERROR = 0;
-    public static final int CODE_CHALLENGE = 1001;
-    public static final int CODE_CHALLENGE_ABORT = 1002;
-    public static final int CODE_CHALLENGE_ACCEPT = 1003;
-    public static final int CODE_CHALLENGE_DECLINE = 1004;
-    public static final int CODE_LIST = 1100;
+    public static final int CODE_ID = 1000;
+    public static final int CODE_CHALLENGE = 1100;
+    public static final int CODE_CHALLENGE_ABORT = 1101;
+    public static final int CODE_CHALLENGE_ACCEPT = 1102;
+    public static final int CODE_CHALLENGE_DECLINE = 1103;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -103,9 +102,9 @@ public final class EventManager {
         return event;
     }
 
-    public static IEvent createChallengeListEvent(Map<String, String> opponents) {
-        var event = new Event(CODE_LIST);
-        event.addArgument("opponents", opponents);
+    public static IEvent createIdEvent(Client sender) {
+        var event = new Event(CODE_ID);
+        event.addArgument("id", sender.getId());
         return event;
     }
 
