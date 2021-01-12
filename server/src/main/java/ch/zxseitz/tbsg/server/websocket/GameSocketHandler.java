@@ -86,10 +86,10 @@ public class GameSocketHandler extends TextWebSocketHandler {
                 // abort match
                 var match = client.getMatch();
                 if (match != null) {
-                    var members = (Client[]) critical(() -> {
+                    var members = critical(() -> {
                         match.get().resign(client);
-                        return match.get().getClients();
-                    }, match);  // return match lock to prevent deadlock with game events
+                        return match.get().getPlayers();
+                    }, match).toArray(Client[]::new);  // return match lock to prevent deadlock with game events
                     for (var member : members) {
                         critical(() -> {
                             member.setMatch(null);
@@ -116,7 +116,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
         try {
             var event = EventManager.parse(message.getPayload());
             switch (event.getCode()) {
-                case EventManager.CODE_CHALLENGE: {
+                case EventManager.CLIENT_CHALLENGE: {
                     var opponentId = event.getArgument("opponent", String.class);
                     var opponent = clients.get(opponentId);
                     if (opponent == null) {
@@ -129,7 +129,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     }, client);
                     break;
                 }
-                case EventManager.CODE_CHALLENGE_ABORT: {
+                case EventManager.CLIENT_CHALLENGE_ABORT: {
                     var opponentId = event.getArgument("opponent", String.class);
                     var opponent = clients.get(opponentId);
                     if (opponent == null) {
@@ -145,7 +145,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     }, client);
                     break;
                 }
-                case EventManager.CODE_CHALLENGE_ACCEPT: {
+                case EventManager.CLIENT_CHALLENGE_ACCEPT: {
                     var opponentId = event.getArgument("opponent", String.class);
                     var opponent = clients.get(opponentId);
                     if (opponent == null) {
@@ -166,7 +166,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     }, client, opponent);
                     break;
                 }
-                case EventManager.CODE_CHALLENGE_DECLINE: {
+                case EventManager.CLIENT_CHALLENGE_DECLINE: {
                     var opponentId = event.getArgument("opponent", String.class);
                     var opponent = clients.get(opponentId);
                     if (opponent == null) {

@@ -1,9 +1,6 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class ActionCollection {
@@ -36,6 +33,10 @@ public class ActionCollection {
             set.add(i);
         }
         add(index, set);
+    }
+
+    public Set<Integer> getIndices() {
+        return actions.keySet();
     }
 
     public void add(int index, Set<Integer> integers) {

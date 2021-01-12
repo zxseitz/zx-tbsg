@@ -6,15 +6,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.Map;
-
 public final class EventManager {
-    public static final int CODE_ERROR = 0;
-    public static final int CODE_ID = 1000;
-    public static final int CODE_CHALLENGE = 1100;
-    public static final int CODE_CHALLENGE_ABORT = 1101;
-    public static final int CODE_CHALLENGE_ACCEPT = 1102;
-    public static final int CODE_CHALLENGE_DECLINE = 1103;
+    public static final int CLIENT_ID = 1000;
+    public static final int CLIENT_CHALLENGE = 1010;
+    public static final int CLIENT_CHALLENGE_ABORT = 1011;
+    public static final int CLIENT_CHALLENGE_ACCEPT = 1012;
+    public static final int CLIENT_CHALLENGE_DECLINE = 1013;
+
+    public static final int SERVER_ERROR = 0;
+    public static final int SERVER_ID = 1100;
+    public static final int SERVER_CHALLENGE = 1110;
+    public static final int SERVER_CHALLENGE_ABORT = 1111;
+    public static final int SERVER_CHALLENGE_DECLINE = 1113;
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -67,13 +70,36 @@ public final class EventManager {
     }
 
     /**
+     * Creates a new error event
+     *
+     * @param reason why the error occurred
+     * @return error event
+     */
+    public static IEvent createErrorEvent(String reason) {
+        var event = new Event(SERVER_ERROR);
+        event.addArgument("reason", reason);
+        return event;
+    }
+
+    /**
+     *
+     * @param sender
+     * @return
+     */
+    public static IEvent createIdEvent(Client sender) {
+        var event = new Event(SERVER_ID);
+        event.addArgument("id", sender.getId());
+        return event;
+    }
+
+    /**
      * Creates a new challenge event
      *
      * @param opponent opponent player
      * @return challenge event
      */
     public static IEvent createChallengeEvent(Client opponent) {
-        var event = new Event(CODE_CHALLENGE);
+        var event = new Event(SERVER_CHALLENGE);
         event.addArgument("opponent", opponent.getId());
         return event;
     }
@@ -85,7 +111,7 @@ public final class EventManager {
      * @return challenge abort event
      */
     public static IEvent createChallengeAbortEvent(Client opponent) {
-        var event = new Event(CODE_CHALLENGE_ABORT);
+        var event = new Event(SERVER_CHALLENGE_ABORT);
         event.addArgument("opponent", opponent.getId());
         return event;
     }
@@ -97,26 +123,8 @@ public final class EventManager {
      * @return challenge decline event
      */
     public static IEvent createChallengeDeclineEvent(Client opponent) {
-        var event = new Event(CODE_CHALLENGE_DECLINE);
+        var event = new Event(SERVER_CHALLENGE_DECLINE);
         event.addArgument("opponent", opponent.getId());
-        return event;
-    }
-
-    public static IEvent createIdEvent(Client sender) {
-        var event = new Event(CODE_ID);
-        event.addArgument("id", sender.getId());
-        return event;
-    }
-
-    /**
-     * Creates a new error event
-     *
-     * @param reason why the error occurred
-     * @return error event
-     */
-    public static IEvent createErrorEvent(String reason) {
-        var event = new Event(CODE_ERROR);
-        event.addArgument("reason", reason);
         return event;
     }
 }
