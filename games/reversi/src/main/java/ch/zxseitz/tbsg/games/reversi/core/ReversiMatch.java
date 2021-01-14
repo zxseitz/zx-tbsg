@@ -34,8 +34,8 @@ public class ReversiMatch implements IMatch {
     public ReversiMatch(String id, IClient black, IClient white, Board board) {
         this.id = id;
         this.players = new HashMap<>();
-        this.players.put(black, Board.FIELD_BLACK);
-        this.players.put(white, Board.FIELD_WHITE);
+        this.players.put(black, Reversi.TOKEN_BLACK);
+        this.players.put(white, Reversi.TOKEN_WHITE);
         this.board = board;
         this.history = new ArrayList<>(60);
         this.actionCollection = new ActionCollection();
@@ -59,14 +59,14 @@ public class ReversiMatch implements IMatch {
         }
         var fields = board.getFields();
         state = GameState.ABORTED;
-        if (color == Board.FIELD_BLACK) {
+        if (color == Reversi.TOKEN_BLACK) {
             // black resigns
-            next = Board.FIELD_WHITE;
+            next = Reversi.TOKEN_WHITE;
             emitAll(Reversi.createDefeatEvent(-1, fields),
                     Reversi.createVictoryEvent(-1, fields));
-        } else if (color == Board.FIELD_WHITE) {
+        } else if (color == Reversi.TOKEN_WHITE) {
             // white resigns
-            next = Board.FIELD_BLACK;
+            next = Reversi.TOKEN_BLACK;
             emitAll(Reversi.createVictoryEvent(-1, fields),
                     Reversi.createDefeatEvent(-1, fields));
         }
@@ -96,7 +96,7 @@ public class ReversiMatch implements IMatch {
         actionCollection.add(44, 36);
 
         state = GameState.RUNNING;
-        next = Board.FIELD_BLACK;
+        next = Reversi.TOKEN_BLACK;
 
         var fields = board.getFields();
         var preview = actionCollection.getIndices().stream().mapToInt(Number::intValue).toArray();
@@ -107,29 +107,28 @@ public class ReversiMatch implements IMatch {
     void emitAll(IEvent blackEvent, IEvent whiteEvent) {
         players.forEach((client, integer) -> {
             try {
-                client.invoke(integer == Board.FIELD_BLACK ? blackEvent : integer == Board.FIELD_WHITE ? whiteEvent : null);
+                client.invoke(integer == Reversi.TOKEN_BLACK ? blackEvent : integer == Reversi.TOKEN_WHITE ? whiteEvent : null);
             } catch (Exception ignore) {
                 // inform opponent?
             }
         });
     }
 
-    Optional<IClient> getOpponent(IClient client) {
-        return players.keySet().stream()
-                .filter(client1 -> !client1.equals(client))
-                .findFirst();
+    //todo improve
+    IClient getOpponent(IClient client) {
+        var clients = players.keySet().toArray(IClient[]::new);
+        return client.equals(clients[0]) ? clients[1] : client.equals(clients[1]) ? clients[0] : null;
     }
 
     @Override
     public void invoke(IClient sender, IEvent event) throws ClientException, EventException, GameException {
-        var o = getOpponent(sender);
-        if (o.isEmpty()) {
+        var opponent = getOpponent(sender);
+        if (opponent == null) {
             throw new ReversiException("Client " + sender.getId() + " is not a member of match " + id);
         }
         switch (event.getCode()) {
             case Reversi.CLIENT_PLACE:
                 var index = event.getArgument("index", Integer.class);
-                var opponent = o.get();
                 var color = players.get(sender);
                 var opponentColor = players.get(opponent);
                 place(color, opponentColor, index);
@@ -156,7 +155,7 @@ public class ReversiMatch implements IMatch {
                 }
                 break;
             default:
-                throw new EventException("Invalid event code: " + event.getCode());
+                throw new EventException("Unknown event code: " + event.getCode());
         }
     }
 
@@ -164,8 +163,8 @@ public class ReversiMatch implements IMatch {
         return state;
     }
 
-    public GameState getNext() {
-        return state;
+    public int getNext() {
+        return next;
     }
 
     List<Audit> getHistory() {
@@ -186,7 +185,7 @@ public class ReversiMatch implements IMatch {
      * @throws InvalidPlaceException  if the place action is not valid
      * @throws InvalidFieldException  if the field position is invalid
      */
-    void place(int color, int opponentColor, int index) throws ReversiException {
+    private void place(int color, int opponentColor, int index) throws ReversiException {
         // check current state
         if (state != GameState.RUNNING) {
             throw new InvalidPlaceException(String.format("Match [%s] is already finished", id));
@@ -195,7 +194,7 @@ public class ReversiMatch implements IMatch {
             throw new InvalidPlaceException(String.format("Not %s's turn in match [%s]", getColorName(color), id));
         }
         if (!actionCollection.containsIndex(index)) {
-            throw new InvalidFieldException(String.format("Invalid place action of %s on field index %d" +
+            throw new InvalidFieldException(String.format("Invalid place action of %s on field index %d " +
                     "in match [%s]", getColorName(color), index, id));
         }
 
@@ -212,10 +211,10 @@ public class ReversiMatch implements IMatch {
         var whiteCount = 0;
         for (var i = 0; i < 64; i++) {
             switch (board.get(i)) {
-                case Board.FIELD_BLACK:
+                case Reversi.TOKEN_BLACK:
                     blackCount++;
                     break;
-                case Board.FIELD_WHITE:
+                case Reversi.TOKEN_WHITE:
                     whiteCount++;
                     break;
                 default:
@@ -240,11 +239,11 @@ public class ReversiMatch implements IMatch {
         // check end state, if no one has legal moves
         this.state = GameState.FINISHED;
         if (blackCount > whiteCount) {
-            this.next = Board.FIELD_BLACK;
+            this.next = Reversi.TOKEN_BLACK;
         } else if (blackCount < whiteCount) {
-            this.next = Board.FIELD_WHITE;
+            this.next = Reversi.TOKEN_WHITE;
         } else {
-            this.next = Board.FIELD_UNDEFINED;
+            this.next = Reversi.TOKEN_EMPTY;
         }
     }
 

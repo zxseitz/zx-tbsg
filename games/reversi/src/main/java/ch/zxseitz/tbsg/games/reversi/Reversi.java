@@ -12,6 +12,11 @@ import java.util.UUID;
 
 @TbsgGame("reversi")
 public class Reversi implements IGame {
+    public static final int TOKEN_UNDEFINED = -1;
+    public static final int TOKEN_EMPTY = 0;
+    public static final int TOKEN_BLACK = 1;
+    public static final int TOKEN_WHITE = 2;
+
     public static final int CLIENT_PLACE = 2000;
 
     public static final int SERVER_INIT_NEXT_PLAYER = 2100;

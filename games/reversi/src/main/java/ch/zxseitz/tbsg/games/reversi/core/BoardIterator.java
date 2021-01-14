@@ -1,5 +1,7 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
+import ch.zxseitz.tbsg.games.reversi.Reversi;
+
 import java.util.Map;
 
 public class BoardIterator {
@@ -25,6 +27,6 @@ public class BoardIterator {
             var index = Board.getIndex(x, y);
             return Map.entry(index, board.get(index));
         }
-        return Map.entry(-1, Board.FIELD_UNDEFINED);
+        return Map.entry(-1, Reversi.TOKEN_UNDEFINED);
     }
 }

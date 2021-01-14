@@ -1,15 +1,11 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
 
+import ch.zxseitz.tbsg.games.reversi.Reversi;
+
 import java.util.Arrays;
 
 public class Board {
-    // field states
-    public static final int FIELD_UNDEFINED = -1;
-    public static final int FIELD_EMPTY = 0;
-    public static final int FIELD_BLACK = 1;
-    public static final int FIELD_WHITE = 2;
-
     /**
      * Calculates the field index.
      *
@@ -49,7 +45,7 @@ public class Board {
         if (index >= 0 && index < 64) {
             return fields[index];
         }
-        return FIELD_UNDEFINED;
+        return Reversi.TOKEN_UNDEFINED;
     }
 
     /**

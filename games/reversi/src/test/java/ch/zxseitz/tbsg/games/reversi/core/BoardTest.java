@@ -1,5 +1,6 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
+import ch.zxseitz.tbsg.games.reversi.Reversi;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,19 +29,19 @@ public class BoardTest {
     @Test
     public void testGet() {
         var board = new Board();
-        Assert.assertEquals(Board.FIELD_UNDEFINED, board.get(-1));
-        Assert.assertEquals(Board.FIELD_EMPTY, board.get(0));
-        Assert.assertEquals(Board.FIELD_EMPTY, board.get(28));
-        Assert.assertEquals(Board.FIELD_EMPTY, board.get(63));
-        Assert.assertEquals(Board.FIELD_UNDEFINED, board.get(64));
+        Assert.assertEquals(Reversi.TOKEN_UNDEFINED, board.get(-1));
+        Assert.assertEquals(Reversi.TOKEN_EMPTY, board.get(0));
+        Assert.assertEquals(Reversi.TOKEN_EMPTY, board.get(28));
+        Assert.assertEquals(Reversi.TOKEN_EMPTY, board.get(63));
+        Assert.assertEquals(Reversi.TOKEN_UNDEFINED, board.get(64));
     }
 
     @Test
     public void testSet() {
         var board = new Board();
-        Assert.assertFalse(board.set(-1, Board.FIELD_EMPTY));
-        Assert.assertTrue(board.set(0, Board.FIELD_EMPTY));
-        Assert.assertTrue(board.set(63, Board.FIELD_EMPTY));
-        Assert.assertFalse(board.set(64, Board.FIELD_EMPTY));
+        Assert.assertFalse(board.set(-1, Reversi.TOKEN_EMPTY));
+        Assert.assertTrue(board.set(0, Reversi.TOKEN_EMPTY));
+        Assert.assertTrue(board.set(63, Reversi.TOKEN_EMPTY));
+        Assert.assertFalse(board.set(64, Reversi.TOKEN_EMPTY));
     }
 }
