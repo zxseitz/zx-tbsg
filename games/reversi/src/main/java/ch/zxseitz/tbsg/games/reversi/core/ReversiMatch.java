@@ -13,22 +13,17 @@ import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlaceException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.InvalidPlayerException;
 import ch.zxseitz.tbsg.games.reversi.exceptions.ReversiException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class ReversiMatch implements IMatch {
+
     private final String id;
     private final Map<IClient, Integer> players;
     private final List<Audit> history;
     private final Board board;
     private final ActionCollection actionCollection;
 
-    GameState state;
+    GameState state; //accessible for testing
     int next;  //accessible for testing
 
     public ReversiMatch(String id, IClient black, IClient white, Board board) {
@@ -135,7 +130,7 @@ public class ReversiMatch implements IMatch {
                 history.add(new Audit(sender, index));
                 var fields = board.getFields();
                 var preview = actionCollection.getIndices().stream().mapToInt(Number::intValue).toArray();
-                if (state != GameState.RUNNING) {
+                if (state == GameState.RUNNING) {
                     var playerNextEvent = Reversi.createPlayerNextEvent(index, fields, preview);
                     var opponentNextEvent = Reversi.createOpponentNextEvent(index, fields);
                     sender.invoke(next == color ? playerNextEvent : opponentNextEvent);
@@ -200,9 +195,7 @@ public class ReversiMatch implements IMatch {
 
         // apply new token
         board.set(index, color);
-        actionCollection.foreach(index, i -> {
-            board.set(i, color);
-        });
+        board.set(actionCollection.get(index), color);
 
         // update state and actions
         actionCollection.clear();
@@ -223,14 +216,14 @@ public class ReversiMatch implements IMatch {
         }
 
         // check next opponent turn
-        addActions(emptyFields, opponentColor);
+        addActions(emptyFields, opponentColor, color);
         if (actionCollection.anyIndices()) {
             this.next = opponentColor;
             return;
         }
 
         // check next own turn, if opponent has no legal moves
-        addActions(emptyFields, color);
+        addActions(emptyFields, color, opponentColor);
         if (actionCollection.anyIndices()) {
             this.next = color;
             return;
@@ -247,37 +240,13 @@ public class ReversiMatch implements IMatch {
         }
     }
 
-    private void addActions(Set<Integer> emptyFields, int color) {
-        var it = new BoardIterator(board);
+    private void addActions(Set<Integer> emptyFields, int color, int opponentColor) {
         for (var ai : emptyFields) {
-            var ax = ai % 8;
-            var ay = ai / 8;
-            var set = new TreeSet<Integer>();
-            set.addAll(iterateStraight(it, ax, ay, 1, 0, color));
-            set.addAll(iterateStraight(it, ax, ay, 1, 1, color));
-            set.addAll(iterateStraight(it, ax, ay, 0, 1, color));
-            set.addAll(iterateStraight(it, ax, ay, -1, 1, color));
-            set.addAll(iterateStraight(it, ax, ay, -1, 0, color));
-            set.addAll(iterateStraight(it, ax, ay, -1, -1, color));
-            set.addAll(iterateStraight(it, ax, ay, 0, -1, color));
-            set.addAll(iterateStraight(it, ax, ay, 1, -1, color));
-            actionCollection.add(ai, set);
+            var actions = board.getOpponentTokens(ai, color, opponentColor);
+            if (actions.size() > 0) {
+                actionCollection.add(ai, actions);
+            }
         }
-    }
-
-    private Set<Integer> iterateStraight(BoardIterator iterator, int x, int y, int dx, int dy, int color) {
-        var fields = new TreeSet<Integer>();
-        var opponentColor = 3 - color;
-        iterator.set(x, y, dx, dy);
-        var state = iterator.next();
-        while (state.getValue() == opponentColor) {
-            fields.add(state.getKey());
-            state = iterator.next();
-        }
-        if (state.getKey() <= 0) {
-            fields.clear();
-        }
-        return fields;
     }
 
     public String printBoard() {

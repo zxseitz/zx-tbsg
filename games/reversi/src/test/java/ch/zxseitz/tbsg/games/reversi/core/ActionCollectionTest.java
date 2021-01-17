@@ -50,32 +50,4 @@ public class ActionCollectionTest {
         ac.add(2, Set.of(2, 3));
         Assert.assertEquals(Set.of(2, 3), ac.get(2));
     }
-
-    @Test
-    public void testForeach() {
-        try {
-            var ac = new ActionCollection(Map.of(
-                    2, Set.of(1, 2, 3),
-                    3, Set.of(2, 4, 6)
-            ));
-            var set = new TreeSet<Integer>();
-            ac.foreach(2, set::add);
-            Assert.assertEquals(Set.of(1, 2, 3), set);
-        } catch (IllegalArgumentException iae) {
-            iae.printStackTrace();
-            Assert.fail();
-        }
-    }
-
-    @Test
-    public void testForeachInvalid() {
-        try {
-            var ac = new ActionCollection();
-            var set = new TreeSet<Integer>();
-            ac.foreach(2, set::add);
-            Assert.fail();
-        } catch (IllegalArgumentException iae) {
-            Assert.assertEquals("collection does not contain index 2", iae.getMessage());
-        }
-    }
 }
