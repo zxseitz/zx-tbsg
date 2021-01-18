@@ -17,6 +17,7 @@ public final class EventManager {
     public static final int SERVER_ID = 1100;
     public static final int SERVER_CHALLENGE = 1110;
     public static final int SERVER_CHALLENGE_ABORT = 1111;
+    public static final int SERVER_CHALLENGE_ACCEPT = 1112;
     public static final int SERVER_CHALLENGE_DECLINE = 1113;
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -112,6 +113,18 @@ public final class EventManager {
      */
     public static IEvent createChallengeAbortEvent(Client opponent) {
         var event = new Event(SERVER_CHALLENGE_ABORT);
+        event.addArgument("opponent", opponent.getId());
+        return event;
+    }
+
+    /**
+     * Creates a new challenge accept event
+     *
+     * @param opponent opponent player
+     * @return challenge accept event
+     */
+    public static IEvent createChallengeAcceptEvent(Client opponent) {
+        var event = new Event(SERVER_CHALLENGE_ACCEPT);
         event.addArgument("opponent", opponent.getId());
         return event;
     }

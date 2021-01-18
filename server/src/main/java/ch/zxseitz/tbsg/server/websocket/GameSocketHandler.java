@@ -152,7 +152,9 @@ public class GameSocketHandler extends TextWebSocketHandler {
                         throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId));
                     }
                     critical(() -> {
+                        // todo queuing accepts
                         if (client.getMatch() == null && opponent.getMatch() == null) {
+                            opponent.invoke(EventManager.createChallengeAcceptEvent(client));
                             List<IClient> clients = Arrays.asList(client, opponent);
                             var match = proxy.getInstance().createMatch(clients);
                             var matchLocker = new Locker<>(match);
