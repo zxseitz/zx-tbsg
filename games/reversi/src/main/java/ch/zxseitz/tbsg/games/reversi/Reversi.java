@@ -55,7 +55,7 @@ public class Reversi implements IGame {
     }
 
     public static IEvent createOpponentNextEvent(int source, int[] fields) {
-        var event = new Event(Reversi.SERVER_INIT_NEXT_OPPONENT);
+        var event = new Event(Reversi.SERVER_NEXT_OPPONENT);
         event.addArgument("source", source);
         event.addArgument("board", fields);
         return event;
