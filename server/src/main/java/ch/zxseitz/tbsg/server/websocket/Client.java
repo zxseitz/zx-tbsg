@@ -1,9 +1,6 @@
 package ch.zxseitz.tbsg.server.websocket;
 
-import ch.zxseitz.tbsg.games.ClientException;
-import ch.zxseitz.tbsg.games.IClient;
-import ch.zxseitz.tbsg.games.IEvent;
-import ch.zxseitz.tbsg.games.IMatch;
+import ch.zxseitz.tbsg.games.*;
 import ch.zxseitz.tbsg.server.model.User;
 
 import java.io.IOException;
@@ -39,11 +36,7 @@ public class Client implements IClient, ILockable<Client> {
     }
 
     @Override
-    public String getName() {
-        return user != null ? user.getUsername() : "guest";
-    }
-
-    public User getUser() {
+    public IPlayer getPlayer() {
         return user;
     }
 
@@ -83,6 +76,6 @@ public class Client implements IClient, ILockable<Client> {
 
     @Override
     public String toString() {
-        return session.getId() + "," + getName();
+        return session.getId() + "," + (user != null ? user.getUsername() : "guest");
     }
 }

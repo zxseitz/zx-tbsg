@@ -1,21 +1,25 @@
 package ch.zxseitz.tbsg.games.reversi.core;
 
-import ch.zxseitz.tbsg.games.IClient;
+import ch.zxseitz.tbsg.games.IAudit;
+import ch.zxseitz.tbsg.games.IEvent;
+import ch.zxseitz.tbsg.games.IPlayer;
 
-public class Audit {
-    private final IClient player;
-    private final int field;
+public class Audit implements IAudit {
+    private final IPlayer player;
+    private final IEvent event;
 
-    public Audit(IClient client, int field) {
+    public Audit(IPlayer client, IEvent event) {
         this.player = client;
-        this.field = field;
+        this.event = event;
     }
 
-    public IClient getPlayer() {
+    @Override
+    public IPlayer getPlayer() {
         return player;
     }
 
-    public int getField() {
-        return field;
+    @Override
+    public IEvent getEvent() {
+        return event;
     }
 }

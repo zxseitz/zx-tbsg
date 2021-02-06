@@ -1,5 +1,6 @@
 package ch.zxseitz.tbsg.server.model;
 
+import ch.zxseitz.tbsg.games.IPlayer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -11,8 +12,8 @@ import java.util.Collection;
 import java.util.List;
 
 @Document(collection = "users")
-public class User {
-    @Id public final ObjectId id;
+public class User implements IPlayer {
+    @Id private final ObjectId id;
     private final String username;
     private final String email;
     @JsonIgnore private final String password;  // hashed
@@ -30,6 +31,12 @@ public class User {
         return roles;
     }
 
+    @Override
+    public String getId() {
+        return id.toHexString();
+    }
+
+    @Override
     public String getUsername() {
         return username;
     }

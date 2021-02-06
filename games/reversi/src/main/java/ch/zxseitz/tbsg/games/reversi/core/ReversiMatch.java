@@ -127,7 +127,7 @@ public class ReversiMatch implements IMatch {
                 var color = players.get(sender);
                 var opponentColor = players.get(opponent);
                 place(color, opponentColor, index);
-                history.add(new Audit(sender, index));
+                history.add(new Audit(sender.getPlayer(), event));
                 var fields = board.getFields();
                 var preview = actionCollection.getIndices().stream().mapToInt(Number::intValue).toArray();
                 if (state == GameState.RUNNING) {

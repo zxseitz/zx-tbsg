@@ -42,7 +42,7 @@ public class JwtUtils {
                 .map(GrantedAuthority::getAuthority)
                 .reduce((role1, role2) -> role1 + "," + role2).orElse("");
         return Jwts.builder()
-                .claim("sub",user.id.toHexString())
+                .claim("sub",user.getId())
                 .claim("roles", roles)
                 .claim(Claims.EXPIRATION, new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
                 .signWith(SignatureAlgorithm.HS256, secret).compact();
