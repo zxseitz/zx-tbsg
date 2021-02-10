@@ -30,7 +30,7 @@ public class TbsgProcessor extends AbstractProcessor {
             var packageName = packageElement.getQualifiedName().toString();
             var annotationValue = type.getAnnotation(TbsgGame.class).value();
 
-            messager.printMessage(Diagnostic.Kind.WARNING, "Found class " + type.getSimpleName().toString() + " with Annotation @Tbsg(" +  annotationValue + ")");
+            messager.printMessage(Diagnostic.Kind.NOTE, "Found class " + type.getSimpleName().toString() + " with Annotation @Tbsg(" +  annotationValue + ")");
         }
 
         return true;
