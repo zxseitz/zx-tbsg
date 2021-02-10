@@ -1,6 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'idea'
-
 
 group 'ch.zxseitz'
 version '0.0.1-SNAPSHOT'
@@ -10,6 +8,5 @@ repositories {
 }
 
 dependencies {
-    implementation gradleApi()
     testImplementation 'junit:junit:4.13'
 }
