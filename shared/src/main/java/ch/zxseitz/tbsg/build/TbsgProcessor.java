@@ -22,7 +22,7 @@ public class TbsgProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        messager.printMessage(Diagnostic.Kind.WARNING, "start annotation processor");
+//        messager.printMessage(Diagnostic.Kind.WARNING, "start annotation processor");
         var annotatedElements = roundEnv.getElementsAnnotatedWith(TbsgGame.class);
         var types = ElementFilter.typesIn(annotatedElements);
         for (var type : types) {
@@ -30,7 +30,7 @@ public class TbsgProcessor extends AbstractProcessor {
             var packageName = packageElement.getQualifiedName().toString();
             var annotationValue = type.getAnnotation(TbsgGame.class).value();
 
-            messager.printMessage(Diagnostic.Kind.WARNING, annotationValue);
+            messager.printMessage(Diagnostic.Kind.WARNING, "Found class " + type.getSimpleName().toString() + " with Annotation @Tbsg(" +  annotationValue + ")");
         }
 
         return true;
