@@ -1,4 +1,4 @@
-package ch.zxseitz.tbsg.games;
+package ch.zxseitz.tbsg.games.exceptions;
 
 import ch.zxseitz.tbsg.TbsgException;
 

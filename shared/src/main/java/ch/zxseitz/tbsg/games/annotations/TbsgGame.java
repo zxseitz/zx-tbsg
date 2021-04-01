@@ -1,0 +1,18 @@
+package ch.zxseitz.tbsg.games.annotations;
+
+import ch.zxseitz.tbsg.games.Color;
+import ch.zxseitz.tbsg.games.IBoard;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface TbsgGame {
+    String name();
+    ServerEvent[] serverEvents();
+    Color[] colors();
+    Class<? extends IBoard> board();
+}

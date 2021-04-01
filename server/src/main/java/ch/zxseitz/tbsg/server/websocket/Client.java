@@ -1,6 +1,7 @@
 package ch.zxseitz.tbsg.server.websocket;
 
 import ch.zxseitz.tbsg.games.*;
+import ch.zxseitz.tbsg.games.exceptions.ClientException;
 import ch.zxseitz.tbsg.server.model.User;
 
 import java.io.IOException;
@@ -11,13 +12,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-public class Client implements IClient, ILockable<Client> {
+public class Client implements Comparable<Client>, IProtectable<Client> {
     private final WebSocketSession session;
     private final User user;
     private final Lock lock;
 
     private final Set<Client> challenges;
-    private Locker<IMatch> matchLocker;
+    private Match match;
 
     public Client(WebSocketSession session) {
         this(session, null);
@@ -30,29 +31,28 @@ public class Client implements IClient, ILockable<Client> {
         this.challenges = new HashSet<>();
     }
 
-    @Override
     public String getId() {
         return session.getId();
     }
 
-    @Override
     public IPlayer getPlayer() {
         return user;
     }
 
-    @Override
-    public void invoke(IEvent event) throws ClientException {
+    public void send(String message) throws ClientException {
         try {
-            session.sendMessage(new TextMessage(EventManager.stringify(event)));
+            session.sendMessage(new TextMessage(message));
         } catch (IOException e) {
-            throw new ClientException("Cannot send event " + event.toString() + " to client " + toString(), e);
+            throw new ClientException("Cannot send message " + message + " to client " + toString(), e);
         }
     }
 
+    @Override
     public void lock() {
         lock.lock();
     }
 
+    @Override
     public void unlock() {
         lock.unlock();
     }
@@ -61,12 +61,12 @@ public class Client implements IClient, ILockable<Client> {
         return challenges;
     }
 
-    Locker<IMatch> getMatch() {
-        return matchLocker;
+    Match getMatch() {
+        return match;
     }
 
-    void setMatch(Locker<IMatch> match) {
-        this.matchLocker = match;
+    void setMatch(Match match) {
+        this.match = match;
     }
 
     @Override

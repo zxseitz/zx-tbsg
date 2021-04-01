@@ -3,11 +3,11 @@ package ch.zxseitz.tbsg.server.websocket;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Locker<T extends Comparable<T>> implements ILockable<T> {
+public class Protector<T extends Comparable<T>> implements IProtectable<T> {
     private final Lock lock;
     private final T t;
 
-    public Locker(T t) {
+    public Protector(T t) {
         this.lock = new ReentrantLock();
         this.t = t;
     }
