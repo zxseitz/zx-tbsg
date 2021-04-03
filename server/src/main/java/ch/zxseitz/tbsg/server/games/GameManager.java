@@ -1,13 +1,10 @@
 package ch.zxseitz.tbsg.server.games;
 
-import ch.zxseitz.tbsg.games.IBoard;
-import ch.zxseitz.tbsg.games.annotations.ClientEvent;
-import ch.zxseitz.tbsg.games.annotations.EventArg;
+import ch.zxseitz.tbsg.TbsgException;
+import ch.zxseitz.tbsg.games.IGame;
+import ch.zxseitz.tbsg.games.annotations.UpdateArg;
 import ch.zxseitz.tbsg.games.annotations.TbsgGame;
-import ch.zxseitz.tbsg.games.reversi.Board;
 import ch.zxseitz.tbsg.server.websocket.ArgumentFormat;
-import ch.zxseitz.tbsg.server.websocket.ClientEventFormat;
-import ch.zxseitz.tbsg.server.websocket.EventFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -16,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Component
 public class GameManager {
@@ -36,40 +32,30 @@ public class GameManager {
             logger.info("scanning game class {}", className); //todo debug
             try {
                 var gameClass = Class.forName(className);
+                if (!IGame.class.isAssignableFrom(gameClass)) {
+                    throw new TbsgException("Game class " + gameClass.getSimpleName() + " has to implement interface IGame.");
+                }
                 var gameAnnotation = gameClass.getAnnotation(TbsgGame.class);
                 var gameName = gameAnnotation.name();
                 var colors = gameAnnotation.colors();
-                var serverEvents = Arrays.stream(gameAnnotation.serverEvents())
-                        .map(serverEvent -> {
-                            var eventFormat = new EventFormat(serverEvent.code(), Arrays.stream(serverEvent.args())
-                                    // todo fix class
-                                    .map(arg -> new ArgumentFormat(arg, String.class))
-                                    .toArray(ArgumentFormat[]::new));
-                            logger.info("registered server event (" + serverEvent.code() + ")");
-                            return eventFormat;
-                        })
-                        .collect(Collectors.toMap(EventFormat::getCode, ef -> ef));
-                var clientEvents = Arrays.stream(gameClass.getDeclaredMethods())
-                        .filter(method -> method.isAnnotationPresent(ClientEvent.class))
+                var optionalClientUpdate = Arrays.stream(gameClass.getDeclaredMethods())
+                        .filter(method -> method.isAnnotationPresent(ch.zxseitz.tbsg.games.annotations.ClientUpdate.class))
                         .map(method -> {
-                            var clientEvent = method.getAnnotation(ClientEvent.class);
-                            var eventCode = clientEvent.value();
                             var params = method.getParameters();
-                            if (!IBoard.class.isAssignableFrom(params[0].getType())) {
-                                throw new RuntimeException("First param " + params[0].getName() + " in method"
-                                        + method.getName() + " must implement IBoard");
-                            }
-                            var eventFormat = new ClientEventFormat(eventCode, Arrays.stream(params)
-                                    .skip(1)
-                                    .map(param -> new ArgumentFormat(param.isAnnotationPresent(EventArg.class)
-                                            ? param.getAnnotation(EventArg.class).value() : param.getName(), param.getType()))
-                                    .toArray(ArgumentFormat[]::new), method);
-                            logger.info("registered client event (" + eventCode + ")");
+                            var eventFormat = Map.entry(method, Arrays.stream(params)
+                                    .map(param -> new ArgumentFormat(param.isAnnotationPresent(UpdateArg.class)
+                                            ? param.getAnnotation(UpdateArg.class).value() : param.getName(), param.getType()))
+                                    .toArray(ArgumentFormat[]::new));
+                            logger.info("registered client update method " + method.getName());
                             return eventFormat;
-                        }).collect(Collectors.toMap(ClientEventFormat::getCode, ef -> ef));
-                var instance = gameClass.getConstructor().newInstance();
-                // fixme board class
-                var gameProxy = new GameProxy(gameName, instance, Arrays.asList(colors), serverEvents, clientEvents, Board.class);
+                        }).findFirst();
+                if (optionalClientUpdate.isEmpty()) {
+                    throw new TbsgException("Game " + gameName + " has no client update method annotated with @ClientUpdate.");
+                }
+                var clientUpdate = optionalClientUpdate.get();
+                @SuppressWarnings("unchecked")
+                var gameProxy = new GameProxy(gameName, (Class<? extends IGame>) gameClass,
+                        Arrays.asList(colors), clientUpdate.getKey(), clientUpdate.getValue());
                 proxies.put(gameName, gameProxy);
                 logger.info("registered game {}", gameName);
             } catch (Exception e) {
@@ -80,10 +66,6 @@ public class GameManager {
 
     public Set<String> listGameNames() {
         return proxies.keySet();
-    }
-
-    public GameProxy getGame(String name) {
-        return proxies.get(name);
     }
 
     public void foreachGame(Consumer<GameProxy> action) {

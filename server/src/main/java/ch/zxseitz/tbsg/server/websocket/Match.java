@@ -1,20 +1,20 @@
 package ch.zxseitz.tbsg.server.websocket;
 
 import ch.zxseitz.tbsg.games.Color;
-import ch.zxseitz.tbsg.games.IBoard;
+import ch.zxseitz.tbsg.games.IGame;
 
 public class Match {
-    private final Protector<IBoard> board;
+    private final Protector<IGame> board;
     private final Client black;
     private final Client white;
 
-    public Match(Protector<IBoard> board, Client black, Client white) {
+    public Match(Protector<IGame> board, Client black, Client white) {
         this.board = board;
         this.black = black;
         this.white = white;
     }
 
-    public Protector<IBoard> getBoard() {
+    public Protector<IGame> getGame() {
         return board;
     }
 

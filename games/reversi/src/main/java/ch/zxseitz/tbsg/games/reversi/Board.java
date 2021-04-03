@@ -1,52 +1,31 @@
 package ch.zxseitz.tbsg.games.reversi;
 
-import ch.zxseitz.tbsg.games.*;
+import ch.zxseitz.tbsg.games.Color;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+public class Board {
+    private Color[][] fields;
 
-public class Board implements IBoard {
-    private static synchronized String generateId() {
-        return UUID.randomUUID().toString();
+    void init() {
+        fields = new Color[8][8];
+
     }
 
-    @Override
-    public int compareTo(IBoard o) {
-        return id.compareTo(o.getId());
+    boolean contains(int x, int y) {
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
 
-    private final String id;
-    private int[][] fields;
-    protected List<IAudit> audits;
-    private Color next;
-    private GameState state;
-
-    public Board() {
-        this.id = generateId();
-        this.audits = new ArrayList<>(60);
+    boolean set(int x, int y, Color value) {
+        if (contains(x, y) && (value == Color.BLACK || value == Color.WHITE)) {
+            fields[y][x] = value;
+            return true;
+        }
+        return false;
     }
 
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public Color getNext() {
-        return next;
-    }
-
-    @Override
-    public GameState getState() {
-        return state;
-    }
-
-    public List<IAudit> audits() {
-        return audits;
-    }
-
-    void place(int x, int y) {
-
+    Color get(int x, int y) {
+        if (contains(x, y)) {
+            return fields[y][x];
+        }
+        return null;
     }
 }

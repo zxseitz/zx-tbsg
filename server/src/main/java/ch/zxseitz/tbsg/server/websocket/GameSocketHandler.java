@@ -1,7 +1,8 @@
 package ch.zxseitz.tbsg.server.websocket;
 
 import ch.zxseitz.tbsg.TbsgException;
-import ch.zxseitz.tbsg.games.exceptions.ClientException;
+import ch.zxseitz.tbsg.games.Color;
+import ch.zxseitz.tbsg.games.GameState;
 import ch.zxseitz.tbsg.games.exceptions.EventException;
 import ch.zxseitz.tbsg.server.games.GameProxy;
 
@@ -26,6 +27,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
     public static final int CLIENT_CHALLENGE_ABORT = 1011;
     public static final int CLIENT_CHALLENGE_ACCEPT = 1012;
     public static final int CLIENT_CHALLENGE_DECLINE = 1013;
+    public static final int CLIENT_UPDATE = 2000;
 
     public static final int SERVER_ERROR = 0;
     public static final int SERVER_ID = 1100;
@@ -33,6 +35,13 @@ public class GameSocketHandler extends TextWebSocketHandler {
     public static final int SERVER_CHALLENGE_ABORT = 1111;
     public static final int SERVER_CHALLENGE_ACCEPT = 1112;
     public static final int SERVER_CHALLENGE_DECLINE = 1113;
+    public static final int SERVER_GAME_INIT_NEXT = 2100;
+    public static final int SERVER_GAME_INIT = 2101;
+    public static final int SERVER_GAME_UPDATE_NEXT = 2110;
+    public static final int SERVER_GAME_UPDATE = 2111;
+    public static final int SERVER_GAME_END_VICTORY = 2120;
+    public static final int SERVER_GAME_END_DEFEAT = 2121;
+    public static final int SERVER_GAME_END_TIE = 2122;
 
     private final Logger logger;
     private final ObjectMapper mapper;
@@ -77,7 +86,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
         var client = new Client(session);
         clients.put(session.getId(), client);
         try {
-            client.send(createIdEvent(client));
+            client.send(createIdMessage(client));
         } catch (Exception ignore) {
 
         }
@@ -93,6 +102,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         logger.info("Disconnected client: {}", session.getId());
         var client = clients.remove(session.getId());
+        // todo delete challenges and abort open matches
     }
 
     /**
@@ -115,10 +125,10 @@ public class GameSocketHandler extends TextWebSocketHandler {
             if (argNode == null || !argNode.isObject()) {
                 throw new EventException("Missing arguments");
             }
-            var eventCode = codeNode.intValue();
+            var messageCode = codeNode.intValue();
 
             // lobby client events
-            switch (eventCode) {
+            switch (messageCode) {
                 case CLIENT_CHALLENGE: {
                     var opponentId = readClientArgument(argNode, "opponent", String.class);
                     var opponent = clients.get(opponentId);
@@ -127,7 +137,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     }
                     safe(() -> {
                         client.getChallenges().add(opponent);
-                        opponent.send(createChallengeEvent(client));
+                        opponent.send(createChallengeMessage(client));
                         return null;
                     }, client);
                     break;
@@ -140,7 +150,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     }
                     safe(() -> {
                         if (client.getChallenges().remove(opponent)) {
-                            opponent.send(createChallengeAbortEvent(client));
+                            opponent.send(createChallengeAbortMessage(client));
                         } else {
                             throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId));
                         }
@@ -157,11 +167,13 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     safe(() -> {
                         // todo queuing accepts
                         if (client.getMatch() == null && opponent.getMatch() == null) {
-                            opponent.send(createChallengeAcceptEvent(client));
-                            var board = proxy.createBoard();
+                            opponent.send(createChallengeAcceptMessage(client));
+                            var board = proxy.createGame();
                             var match = new Match(new Protector<>(board), client, opponent);
                             client.setMatch(match);
                             opponent.setMatch(match);
+
+                            //todo server init message
                         } else {
                             throw new TbsgException(String.format("You or opponent [%s] is currently in game", opponentId));
                         }
@@ -177,7 +189,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     }
                     safe(() -> {
                         if (opponent.getChallenges().remove(client)) {
-                            opponent.send(createChallengeDeclineEvent(client));
+                            opponent.send(createChallengeDeclineMessage(client));
                         } else {
                             throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId));
                         }
@@ -185,32 +197,38 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     }, opponent);
                     break;
                 }
-                default: {
-                    var event = proxy.getClientEvents().get(eventCode);
-                    if (event != null) {
-                        var args = readClientGameArguments(argNode, event.getArgs());
-                        safe(() -> {
-                            var match = client.getMatch();
-                            if (match != null) {
-                                var boardProtector = match.getBoard();
-                                safe(() -> {
-                                    var board = boardProtector.get();
-                                    event.getMethod().invoke(proxy.getGame(), board, args);
-                                    // todo update client states
-                                    return null;
-                                }, boardProtector);
-                            } else {
-                                throw new TbsgException("You are not in game to invoke this event");
+                case CLIENT_UPDATE: {
+                    var arguments = readClientGameArguments(argNode, proxy.getUpdateArguments());
+                    safe(() ->  {
+                        var match = client.getMatch();
+                        var gameProtector = match.getGame();
+                        var opponent = match.getOpponent(client);
+                        safe(() ->  {
+                            var game = gameProtector.get();
+                            if (game.getState() == GameState.FINISHED) {
+                                client.send(createErrorMessage("Game is already finished"));
                             }
+                            if (!game.getNext().equals(match.getColor(client))) {
+                                client.send(createErrorMessage("Not your turn"));
+                            }
+                            proxy.performUpdate(game, arguments);
+
+                            //todo update game
+
                             return null;
-                        }, client);
-                    }
+                        }, gameProtector);
+                        return null;
+                    }, client);
+                }
+                default: {
+                    client.send(createErrorMessage("unknown message code " + messageCode));
                 }
             }
         } catch (Exception e) {
+            logger.warn(e.getMessage(), e);
             try {
-                client.send(e.getMessage());
-            } catch (ClientException ce) {
+                client.send(createErrorMessage(e.getMessage()));
+            } catch (Exception ce) {
                 logger.warn(ce.getMessage(), ce);
             }
         }
@@ -246,34 +264,91 @@ public class GameSocketHandler extends TextWebSocketHandler {
         throw new EventException("Missing argument " + name);
     }
 
-    public String createErrorEvent(String reason) throws JsonProcessingException {
+    public String createErrorMessage(String reason) throws JsonProcessingException {
         return stringify(SERVER_ERROR,
-                Map.entry("reason", reason));
+                Map.entry("reason", reason)
+        );
     }
 
-    public String createIdEvent(Client sender) throws JsonProcessingException {
+    public String createIdMessage(Client sender) throws JsonProcessingException {
         return stringify(SERVER_ID,
-                Map.entry("id", sender.getId()));
+                Map.entry("id", sender.getId())
+        );
     }
 
-    public String createChallengeEvent(Client opponent) throws JsonProcessingException {
+    public String createChallengeMessage(Client opponent) throws JsonProcessingException {
         return stringify(SERVER_CHALLENGE,
-                Map.entry("opponent", opponent.getId()));
+                Map.entry("opponent", opponent.getId())
+        );
     }
 
-    public String createChallengeAbortEvent(Client opponent) throws JsonProcessingException {
+    public String createChallengeAbortMessage(Client opponent) throws JsonProcessingException {
         return stringify(SERVER_CHALLENGE_ABORT,
-                Map.entry("opponent", opponent.getId()));
+                Map.entry("opponent", opponent.getId())
+        );
     }
 
-    private String createChallengeAcceptEvent(Client opponent) throws JsonProcessingException {
+    private String createChallengeAcceptMessage(Client opponent) throws JsonProcessingException {
         return stringify(SERVER_CHALLENGE_ACCEPT,
-                Map.entry("opponent", opponent.getId()));
+                Map.entry("opponent", opponent.getId())
+        );
     }
 
-    private String createChallengeDeclineEvent(Client opponent) throws JsonProcessingException {
+    private String createChallengeDeclineMessage(Client opponent) throws JsonProcessingException {
         return stringify(SERVER_CHALLENGE_DECLINE,
-                Map.entry("opponent", opponent.getId()));
+                Map.entry("opponent", opponent.getId())
+        );
+    }
+
+    private String createGameInitNextMessage(Color color, Object board, Object preview) throws JsonProcessingException {
+        return stringify(SERVER_GAME_INIT_NEXT,
+                Map.entry("color", color.ordinal()),
+                Map.entry("board", board),
+                Map.entry("preview", preview)
+        );
+    }
+
+    private String createGameInitMessage(Color color, Object board) throws JsonProcessingException {
+        return stringify(SERVER_GAME_INIT,
+                Map.entry("color", color.ordinal()),
+                Map.entry("board", board)
+        );
+    }
+
+    private String createGameUpdateNextMessage(int source, Object board, Object preview) throws JsonProcessingException {
+        return stringify(SERVER_GAME_UPDATE_NEXT,
+                Map.entry("source", source),
+                Map.entry("board", board),
+                Map.entry("preview", preview)
+        );
+    }
+
+    private String createGameUpdateMessage(int source, Object board) throws JsonProcessingException {
+        return stringify(SERVER_GAME_UPDATE,
+                Map.entry("source", source),
+                Map.entry("board", board)
+        );
+    }
+
+    private String createGameEndVictoryMessage(int source, Object board) throws JsonProcessingException {
+        return stringify(SERVER_GAME_END_VICTORY,
+                Map.entry("source", source),
+                Map.entry("board", board)
+        );
+    }
+
+    private String createGameEndDefeatMessage(int source, Object board) throws JsonProcessingException {
+        return stringify(SERVER_GAME_END_DEFEAT,
+                Map.entry("source", source),
+                Map.entry("board", board)
+        );
+    }
+
+    private String createGameEndTieMessage(int source, Object board) throws JsonProcessingException {
+        return stringify(SERVER_GAME_END_TIE,
+                Map.entry("source", source),
+                Map.entry("board", board)
+        );
     }
 
     @SafeVarargs

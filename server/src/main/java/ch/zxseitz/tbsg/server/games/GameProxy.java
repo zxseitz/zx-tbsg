@@ -1,57 +1,57 @@
 package ch.zxseitz.tbsg.server.games;
 
 
+import ch.zxseitz.tbsg.TbsgException;
 import ch.zxseitz.tbsg.games.Color;
-import ch.zxseitz.tbsg.games.IBoard;
-import ch.zxseitz.tbsg.games.reversi.Board;
-import ch.zxseitz.tbsg.server.websocket.ClientEventFormat;
-import ch.zxseitz.tbsg.server.websocket.EventFormat;
+import ch.zxseitz.tbsg.games.IGame;
+import ch.zxseitz.tbsg.server.websocket.ArgumentFormat;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 
 public class GameProxy {
     private final String name;
-    private final Object game;
     private final Collection<Color> colors;
-    private final Map<Integer, EventFormat> serverEvents;
-    private final Map<Integer, ClientEventFormat> clientEvents;
-    private final Class<? extends IBoard> boardClass;
+    private final Method updateMethod;
+    private final ArgumentFormat[] updateArguments;
+    private final Class<? extends IGame> gameClass;
 
-    public GameProxy(String name, Object game, Collection<Color> colors,
-                     Map<Integer, EventFormat> serverEvents,
-                     Map<Integer, ClientEventFormat> clientEvents,
-                     Class<? extends IBoard> boardClass) {
+    public GameProxy(String name, Class<? extends IGame> gameClass,
+                     Collection<Color> colors, Method updateMethod,
+                     ArgumentFormat[] updateArguments) {
         this.name = name;
-        this.game = game;
+        this.gameClass = gameClass;
         this.colors = Collections.unmodifiableCollection(colors);
-        this.serverEvents = Collections.unmodifiableMap(serverEvents);
-        this.clientEvents = Collections.unmodifiableMap(clientEvents);
-        this.boardClass = boardClass;
+        this.updateMethod = updateMethod;
+        this.updateArguments = updateArguments;
     }
 
     public String getName() {
         return name;
     }
 
-    public Object getGame() {
-        return game;
-    }
-
-    public IBoard createBoard() throws Exception {
-        return boardClass.getConstructor().newInstance();
-    }
-
     public Collection<Color> getColors() {
         return colors;
     }
 
-    public Map<Integer, ClientEventFormat> getClientEvents() {
-        return clientEvents;
+    public ArgumentFormat[] getUpdateArguments() {
+        return updateArguments;
     }
 
-    public Map<Integer, EventFormat> getServerEvents() {
-        return serverEvents;
+    public IGame createGame() throws TbsgException {
+        try {
+            return gameClass.getConstructor().newInstance();
+        } catch (Exception e) {
+            throw new TbsgException("Unable to create " + name + " game instance");
+        }
+    }
+
+    public void performUpdate(IGame game, Object[] args) throws TbsgException {
+        try {
+            updateMethod.invoke(game, args);
+        } catch (Exception e) {
+            throw new TbsgException("Unable to perform " + name + " client update, check arguments");
+        }
     }
 }
