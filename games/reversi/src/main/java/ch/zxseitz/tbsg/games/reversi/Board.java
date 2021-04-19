@@ -7,7 +7,6 @@ public class Board {
 
     void init() {
         fields = new Color[8][8];
-
     }
 
     boolean contains(int x, int y) {

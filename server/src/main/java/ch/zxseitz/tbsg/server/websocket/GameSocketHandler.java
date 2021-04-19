@@ -128,17 +128,21 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     }
                     safe(() -> {
                         // todo queuing accepts
+                        // fixme color values
                         if (client.getMatch() == null && opponent.getMatch() == null) {
                             opponent.send(MessageManager.createChallengeAcceptMessage(client));
-                            var board = proxy.createGame();
-                            var match = new Match(new Protector<>(board), client, opponent);
+                            var game = proxy.createGame();
+                            var clients = new TreeMap<Integer, Client>();
+                            clients.put(1, client);
+                            clients.put(2, opponent);
+                            var match = new Match(new Protector<>(game), clients);
                             client.setMatch(match);
                             opponent.setMatch(match);
 
                             sendToClient(client, MessageManager
-                                    .createGameInitNextMessage(Color.BLACK, null, null));  // fixme
+                                    .createGameInitNextMessage(1, game.getBoard(), proxy.pollNext(game)));
                             sendToClient(opponent, MessageManager
-                                    .createGameInitMessage(Color.WHITE, null));  // fixme
+                                    .createGameInitMessage(2, game.getBoard()));
                         } else {
                             throw new TbsgException(String.format("You or opponent [%s] is currently in game", opponentId));
                         }
@@ -164,8 +168,8 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     break;
                 }
                 case MessageManager.CLIENT_UPDATE: {
-                    var arguments = MessageManager
-                            .readClientGameArguments(argNode, proxy.getUpdateArguments());
+                    var action = MessageManager
+                            .readClientGameArguments(argNode, proxy.getActionClass());
                     safe(() ->  {
                         var match = client.getMatch();
                         var gameProtector = match.getGame();
@@ -177,20 +181,20 @@ public class GameSocketHandler extends TextWebSocketHandler {
                                         .createErrorMessage("Game is already finished"));
                             }
                             var color = match.getColor(client);
-                            if (!game.getNext().equals(color)) {
+                            if (game.getNext() != color) {
                                 sendToClient(client, MessageManager
                                         .createErrorMessage("Not your turn"));
                             }
 
-                            proxy.performUpdate(game, arguments);
+                            proxy.performUpdate(game, action);
 
                             if (game.getState().equals(GameState.RUNNING)) {
                                 // game continues
                                 var updateNextMessage = MessageManager
-                                        .createGameUpdateNextMessage(0, null, null); //fixme
+                                        .createGameUpdateNextMessage(action, game.getBoard(), proxy.pollNext(game));
                                 var updateMessage = MessageManager
-                                        .createGameUpdateMessage(0, null); //fixme
-                                if (game.getNext().equals(color)) {
+                                        .createGameUpdateMessage(action, game.getBoard());
+                                if (game.getNext() == color) {
                                     sendToClient(client, updateNextMessage);
                                     sendToClient(opponent, updateMessage);
                                 } else {
@@ -200,17 +204,17 @@ public class GameSocketHandler extends TextWebSocketHandler {
                             } else {
                                 // game finished
                                 var next = game.getNext();
-                                if (next == null) {
+                                if (next == 0) {
                                     var tieMessage = MessageManager
-                                            .createGameEndTieMessage(0, null);  //fixme
+                                            .createGameEndTieMessage(action, game.getBoard());
                                     sendToClient(client, tieMessage);
                                     sendToClient(opponent, tieMessage);
                                 } else {
                                     var victoryMessage = MessageManager
-                                            .createGameEndVictoryMessage(0, null);  //fixme
+                                            .createGameEndVictoryMessage(action, game.getBoard());
                                     var defeatMessage = MessageManager
-                                            .createGameEndDefeatMessage(0, null);  //fixme
-                                    if(next.equals(color)) {
+                                            .createGameEndDefeatMessage(action, game.getBoard());
+                                    if(next == color) {
                                         sendToClient(client, victoryMessage);
                                         sendToClient(opponent, defeatMessage);
                                     } else {

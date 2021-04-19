@@ -1,12 +1,13 @@
 package ch.zxseitz.tbsg.server.websocket;
 
-import ch.zxseitz.tbsg.games.Color;
 import ch.zxseitz.tbsg.games.exceptions.EventException;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 public class MessageManager {
@@ -34,7 +35,7 @@ public class MessageManager {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private MessageManager() {
-
+        //singleton
     }
 
     public static Map.Entry<Integer, JsonNode> parseClientMessage(String message)
@@ -52,23 +53,13 @@ public class MessageManager {
         return Map.entry(messageCode, argNode);
     }
 
-    public static Object[] readClientGameArguments(JsonNode argsNode, ArgumentFormat[] argsFormat)
+    public static Object readClientGameArguments(JsonNode argsNode, Class<?> actionClass)
             throws EventException {
-        var args = new Object[argsFormat.length];
-        for (var i = 0; i < args.length; i++) {
-            var argFormat = argsFormat[i];
-            var argName = argFormat.getName();
-            var argNode = argsNode.get(argName);
-            if (argNode == null) {
-                throw new EventException("Missing event argument " + argName);
-            }
-            try {
-                args[i] = mapper.treeToValue(argNode, argFormat.getType());
-            } catch (JsonProcessingException e) {
-                throw new EventException("Invalid event argument " + argName);
-            }
+        try {
+            return mapper.treeToValue(argsNode, actionClass);
+        } catch (JsonProcessingException e) {
+            throw new EventException("Invalid arguments " + argsNode.toString());
         }
-        return args;
     }
 
     public static  <T> T readClientArgument(JsonNode node, String name, Class<T> type)
@@ -120,23 +111,23 @@ public class MessageManager {
         );
     }
 
-    public static String createGameInitNextMessage(Color color, Object board, Object preview)
+    public static String createGameInitNextMessage(int color, int[] board, Collection<Object> preview)
             throws JsonProcessingException {
         return stringify(SERVER_GAME_INIT_NEXT,
-                Map.entry("color", color.ordinal()),
+                Map.entry("color", color),
                 Map.entry("board", board),
                 Map.entry("preview", preview)
         );
     }
 
-    public static String createGameInitMessage(Color color, Object board) throws JsonProcessingException {
+    public static String createGameInitMessage(int color, int[] board) throws JsonProcessingException {
         return stringify(SERVER_GAME_INIT,
-                Map.entry("color", color.ordinal()),
+                Map.entry("color", color),
                 Map.entry("board", board)
         );
     }
 
-    public static String createGameUpdateNextMessage(int source, Object board, Object preview)
+    public static String createGameUpdateNextMessage(Object source, int[] board, Collection<Object> preview)
             throws JsonProcessingException {
         return stringify(SERVER_GAME_UPDATE_NEXT,
                 Map.entry("source", source),
@@ -145,28 +136,28 @@ public class MessageManager {
         );
     }
 
-    public static String createGameUpdateMessage(int source, Object board) throws JsonProcessingException {
+    public static String createGameUpdateMessage(Object source, int[] board) throws JsonProcessingException {
         return stringify(SERVER_GAME_UPDATE,
                 Map.entry("source", source),
                 Map.entry("board", board)
         );
     }
 
-    public static String createGameEndVictoryMessage(int source, Object board) throws JsonProcessingException {
+    public static String createGameEndVictoryMessage(Object source, int[] board) throws JsonProcessingException {
         return stringify(SERVER_GAME_END_VICTORY,
                 Map.entry("source", source),
                 Map.entry("board", board)
         );
     }
 
-    public static String createGameEndDefeatMessage(int source, Object board) throws JsonProcessingException {
+    public static String createGameEndDefeatMessage(Object source, int[] board) throws JsonProcessingException {
         return stringify(SERVER_GAME_END_DEFEAT,
                 Map.entry("source", source),
                 Map.entry("board", board)
         );
     }
 
-    public static String createGameEndTieMessage(int source, Object board) throws JsonProcessingException {
+    public static String createGameEndTieMessage(Object source, int[] board) throws JsonProcessingException {
         return stringify(SERVER_GAME_END_TIE,
                 Map.entry("source", source),
                 Map.entry("board", board)

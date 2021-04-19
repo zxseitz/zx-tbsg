@@ -1,13 +1,19 @@
 package ch.zxseitz.tbsg.games.reversi;
 
 import ch.zxseitz.tbsg.games.*;
+import ch.zxseitz.tbsg.games.annotations.ClientNext;
 import ch.zxseitz.tbsg.games.annotations.ClientUpdate;
-import ch.zxseitz.tbsg.games.annotations.UpdateArg;
 import ch.zxseitz.tbsg.games.annotations.TbsgGame;
+import ch.zxseitz.tbsg.games.annotations.Color;
 
+import java.util.Collection;
 import java.util.UUID;
 
-@TbsgGame(name = "reversi", colors = {Color.BLACK, Color.WHITE})
+@TbsgGame(name = "reversi", actionClass = Action.class, colors = {
+        @Color(value = 1, name = "black"),
+        @Color(value = 2, name = "white"),
+})
+// unable to access generic IGame
 public class Reversi implements IGame {
     private static synchronized String generateId() {
         return UUID.randomUUID().toString();
@@ -20,7 +26,7 @@ public class Reversi implements IGame {
 
     private final String id;
     private final Board board;
-    private Color next;
+    private int next;
     private GameState state;
 
     public Reversi() {
@@ -34,7 +40,7 @@ public class Reversi implements IGame {
     }
 
     @Override
-    public Color getNext() {
+    public int getNext() {
         return next;
     }
 
@@ -43,8 +49,18 @@ public class Reversi implements IGame {
         return state;
     }
 
+    @Override
+    public int[] getBoard() {
+        return new int[0];
+    }
+
     @ClientUpdate
-    public void update(@UpdateArg("index") int index) {
-        System.out.println("reversi: (" + next.name() + ", " + index + ")");
+    public void update(Action action) {
+        System.out.println("reversi: (" + next + ", " + action + ")");
+    }
+
+    @ClientNext
+    public Collection<Action> getPreview() {
+        return null;
     }
 }

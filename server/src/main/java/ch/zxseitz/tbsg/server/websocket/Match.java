@@ -3,26 +3,32 @@ package ch.zxseitz.tbsg.server.websocket;
 import ch.zxseitz.tbsg.games.Color;
 import ch.zxseitz.tbsg.games.IGame;
 
+import java.util.Map;
+
+// 1v1 match
 public class Match {
     private final Protector<IGame> board;
-    private final Client black;
-    private final Client white;
+    private final Map<Integer, Client> clients;
 
-    public Match(Protector<IGame> board, Client black, Client white) {
+    public Match(Protector<IGame> board, Map<Integer, Client> clients) {
         this.board = board;
-        this.black = black;
-        this.white = white;
+        this.clients = clients;
     }
 
     public Protector<IGame> getGame() {
         return board;
     }
 
-    public Color getColor(Client client) {
-        return black.equals(client) ? Color.BLACK : white.equals(client) ? Color.WHITE : Color.UNDEFINED;
+    public int getColor(Client client) {
+        return clients.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(client))
+                .mapToInt(Map.Entry::getKey)
+                .findFirst().orElse(0);
     }
 
     public Client getOpponent(Client client) {
-        return black.equals(client) ? white : white.equals(client) ? black : null;
+        return clients.values().stream()
+                .filter(client1 -> !client1.equals(client))
+                .findFirst().orElse(null);
     }
 }

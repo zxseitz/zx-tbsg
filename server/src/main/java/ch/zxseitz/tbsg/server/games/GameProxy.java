@@ -4,39 +4,35 @@ package ch.zxseitz.tbsg.server.games;
 import ch.zxseitz.tbsg.TbsgException;
 import ch.zxseitz.tbsg.games.Color;
 import ch.zxseitz.tbsg.games.IGame;
-import ch.zxseitz.tbsg.server.websocket.ArgumentFormat;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Map;
 
 public class GameProxy {
     private final String name;
-    private final Collection<Color> colors;
+    private final Map<Integer, String> colors;
     private final Method updateMethod;
-    private final ArgumentFormat[] updateArguments;
+    private final Method nextMethod;
     private final Class<? extends IGame> gameClass;
+    private final Class<?> actionClass;
 
-    public GameProxy(String name, Class<? extends IGame> gameClass,
-                     Collection<Color> colors, Method updateMethod,
-                     ArgumentFormat[] updateArguments) {
+    public GameProxy(String name, Class<? extends IGame> gameClass, Class<?> actionClass,
+                     Method updateMethod, Method nextMethod, Map<Integer, String> colors) {
         this.name = name;
         this.gameClass = gameClass;
-        this.colors = Collections.unmodifiableCollection(colors);
+        this.actionClass = actionClass;
         this.updateMethod = updateMethod;
-        this.updateArguments = updateArguments;
+        this.nextMethod = nextMethod;
+        this.colors = colors;
     }
 
     public String getName() {
         return name;
     }
 
-    public Collection<Color> getColors() {
-        return colors;
-    }
-
-    public ArgumentFormat[] getUpdateArguments() {
-        return updateArguments;
+    public String getColor(int color) {
+        return colors.get(color);
     }
 
     public IGame createGame() throws TbsgException {
@@ -47,9 +43,36 @@ public class GameProxy {
         }
     }
 
-    public void performUpdate(IGame game, Object[] args) throws TbsgException {
+    public Class<?> getActionClass() {
+        return actionClass;
+    }
+
+    /**
+     * Returns a list of possible client actions.
+     *
+     * @param game instance
+     * @return list of possible client action, must be of type actionClass
+     * @throws TbsgException if an error occurs
+     */
+    @SuppressWarnings("unchecked")
+    public Collection<Object> pollNext(IGame game) throws TbsgException {
         try {
-            updateMethod.invoke(game, args);
+            return (Collection<Object>) nextMethod.invoke(game);
+        } catch (Exception e) {
+            throw new TbsgException("Unable to perform " + name + " client update, check arguments");
+        }
+    }
+
+    /**
+     * Performs an update according to the client action.
+     *
+     * @param game instance
+     * @param action client action, must be of type actionClass
+     * @throws TbsgException if an error occurs
+     */
+    public void performUpdate(IGame game, Object action) throws TbsgException {
+        try {
+            updateMethod.invoke(game, action);
         } catch (Exception e) {
             throw new TbsgException("Unable to perform " + name + " client update, check arguments");
         }
