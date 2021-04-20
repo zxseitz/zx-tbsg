@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.server.websocket;
 
-import ch.zxseitz.tbsg.games.exceptions.EventException;
+import ch.zxseitz.tbsg.games.exceptions.ActionException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,7 +93,7 @@ public class MessageManagerTest {
             node.put("x", 4);
             MessageManager.readClientGameArguments(node, TestAction.class);
             Assert.fail();
-        } catch (EventException ignore) {
+        } catch (ActionException ignore) {
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail();

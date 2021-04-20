@@ -1,5 +1,7 @@
 package ch.zxseitz.tbsg.games;
 
+import ch.zxseitz.tbsg.games.exceptions.GameException;
+
 import java.util.Collection;
 
 public interface IGame<T> extends Comparable<IGame<?>> {
@@ -8,5 +10,5 @@ public interface IGame<T> extends Comparable<IGame<?>> {
     GameState getState();
     int[] getBoard();
     Collection<T> getPreview();
-    void update(T action);
+    void update(T action) throws GameException;
 }

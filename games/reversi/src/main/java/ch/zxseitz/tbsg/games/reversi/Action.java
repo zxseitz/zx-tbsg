@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.games.reversi;
 
-public class Action {
+public class Action implements Comparable<Action> {
     private final int index;
 
     public Action(int index) {
@@ -9,5 +9,10 @@ public class Action {
 
     public int getIndex() {
         return index;
+    }
+
+    @Override
+    public int compareTo(Action o) {
+        return Integer.compare(index, o.index);
     }
 }

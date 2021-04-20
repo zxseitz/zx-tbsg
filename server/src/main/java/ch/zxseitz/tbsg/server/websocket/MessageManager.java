@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.server.websocket;
 
-import ch.zxseitz.tbsg.games.exceptions.EventException;
+import ch.zxseitz.tbsg.games.exceptions.ActionException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,40 +39,40 @@ public class MessageManager {
     }
 
     public static Map.Entry<Integer, JsonNode> parseClientMessage(String message)
-            throws JsonProcessingException, EventException {
+            throws JsonProcessingException, ActionException {
         var node = mapper.readTree(message);
         var codeNode = node.get("code");
         var argNode = node.get("args");
         if (codeNode == null || !codeNode.isInt()) {
-            throw new EventException("Missing event code");
+            throw new ActionException("Missing event code");
         }
         if (argNode == null || !argNode.isObject()) {
-            throw new EventException("Missing arguments");
+            throw new ActionException("Missing arguments");
         }
         var messageCode = codeNode.intValue();
         return Map.entry(messageCode, argNode);
     }
 
     public static Object readClientGameArguments(JsonNode argsNode, Class<?> actionClass)
-            throws EventException {
+            throws ActionException {
         try {
             return mapper.treeToValue(argsNode, actionClass);
         } catch (JsonProcessingException e) {
-            throw new EventException("Invalid arguments " + argsNode.toString());
+            throw new ActionException("Invalid arguments " + argsNode.toString());
         }
     }
 
     public static  <T> T readClientArgument(JsonNode node, String name, Class<T> type)
-            throws  EventException {
+            throws ActionException {
         var argNode = node.get(name);
         if (argNode != null) {
             try {
                 mapper.convertValue(argNode, type);
             } catch (IllegalArgumentException iae) {
-                throw new EventException("Cannot convert argument " + name + " to " + type.getSimpleName());
+                throw new ActionException("Cannot convert argument " + name + " to " + type.getSimpleName());
             }
         }
-        throw new EventException("Missing argument " + name);
+        throw new ActionException("Missing argument " + name);
     }
 
     public static String createErrorMessage(String reason) throws JsonProcessingException {
