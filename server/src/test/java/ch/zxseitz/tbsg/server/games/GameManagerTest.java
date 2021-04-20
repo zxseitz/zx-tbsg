@@ -2,8 +2,6 @@ package ch.zxseitz.tbsg.server.games;
 
 import ch.zxseitz.tbsg.games.GameState;
 import ch.zxseitz.tbsg.games.IGame;
-import ch.zxseitz.tbsg.games.annotations.ClientNext;
-import ch.zxseitz.tbsg.games.annotations.ClientUpdate;
 import ch.zxseitz.tbsg.games.annotations.Color;
 import ch.zxseitz.tbsg.games.annotations.TbsgGame;
 import ch.zxseitz.tbsg.games.exceptions.GameException;
@@ -45,12 +43,12 @@ public class GameManagerTest {
             return 0;
         }
 
-        @ClientUpdate
+        @Override
         public void update(TestAction action) {
 
         }
 
-        @ClientNext
+        @Override
         public Collection<TestAction> getPreview() {
             return null;
         }
@@ -96,12 +94,12 @@ public class GameManagerTest {
             return 0;
         }
 
-        @ClientUpdate
+        @Override
         public void update(TestAction action) {
 
         }
 
-        @ClientNext
+        @Override
         public Collection<TestAction> getPreview() {
             return null;
         }
@@ -148,12 +146,12 @@ public class GameManagerTest {
             return 0;
         }
 
-        @ClientUpdate
+        @Override
         public void update(TestAction action) {
 
         }
 
-        @ClientNext
+        @Override
         public Collection<TestAction> getPreview() {
             return null;
         }

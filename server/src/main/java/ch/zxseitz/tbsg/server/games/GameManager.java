@@ -1,8 +1,6 @@
 package ch.zxseitz.tbsg.server.games;
 
 import ch.zxseitz.tbsg.games.IGame;
-import ch.zxseitz.tbsg.games.annotations.ClientNext;
-import ch.zxseitz.tbsg.games.annotations.ClientUpdate;
 import ch.zxseitz.tbsg.games.annotations.Color;
 import ch.zxseitz.tbsg.games.annotations.TbsgGame;
 import ch.zxseitz.tbsg.games.exceptions.GameException;
@@ -12,7 +10,6 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.function.Consumer;
