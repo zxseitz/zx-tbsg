@@ -111,7 +111,7 @@ public class MessageManager {
         );
     }
 
-    public static String createGameInitNextMessage(int color, int[] board, Collection<Object> preview)
+    public static String createGameInitNextMessage(int color, int[] board, Collection<?> preview)
             throws JsonProcessingException {
         return stringify(SERVER_GAME_INIT_NEXT,
                 Map.entry("color", color),
@@ -127,7 +127,7 @@ public class MessageManager {
         );
     }
 
-    public static String createGameUpdateNextMessage(Object source, int[] board, Collection<Object> preview)
+    public static String createGameUpdateNextMessage(Object source, int[] board, Collection<?> preview)
             throws JsonProcessingException {
         return stringify(SERVER_GAME_UPDATE_NEXT,
                 Map.entry("source", source),

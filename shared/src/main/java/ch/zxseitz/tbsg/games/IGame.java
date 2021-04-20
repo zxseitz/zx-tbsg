@@ -2,11 +2,11 @@ package ch.zxseitz.tbsg.games;
 
 import java.util.Collection;
 
-public interface IGame extends Comparable<IGame> {
+public interface IGame<T> extends Comparable<IGame<?>> {
     String getId();
     int getNext();
     GameState getState();
     int[] getBoard();
-//    Collection<A> getPreview();
-//    void update(A action);
+    Collection<T> getPreview();
+    void update(T action);
 }

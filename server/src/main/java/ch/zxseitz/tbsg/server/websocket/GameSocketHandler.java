@@ -1,8 +1,8 @@
 package ch.zxseitz.tbsg.server.websocket;
 
 import ch.zxseitz.tbsg.TbsgException;
-import ch.zxseitz.tbsg.games.Color;
 import ch.zxseitz.tbsg.games.GameState;
+import ch.zxseitz.tbsg.games.IGame;
 import ch.zxseitz.tbsg.games.exceptions.ClientException;
 import ch.zxseitz.tbsg.server.games.GameProxy;
 
@@ -140,7 +140,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                             opponent.setMatch(match);
 
                             sendToClient(client, MessageManager
-                                    .createGameInitNextMessage(1, game.getBoard(), proxy.pollNext(game)));
+                                    .createGameInitNextMessage(1, game.getBoard(), game.getPreview()));
                             sendToClient(opponent, MessageManager
                                     .createGameInitMessage(2, game.getBoard()));
                         } else {
@@ -175,7 +175,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                         var gameProtector = match.getGame();
                         var opponent = match.getOpponent(client);
                         safe(() ->  {
-                            var game = gameProtector.get();
+                            var game = (IGame<Object>) gameProtector.get();
                             if (game.getState() == GameState.FINISHED) {
                                 sendToClient(client, MessageManager
                                         .createErrorMessage("Game is already finished"));
@@ -186,12 +186,12 @@ public class GameSocketHandler extends TextWebSocketHandler {
                                         .createErrorMessage("Not your turn"));
                             }
 
-                            proxy.performUpdate(game, action);
+                            game.update(action);
 
                             if (game.getState().equals(GameState.RUNNING)) {
                                 // game continues
                                 var updateNextMessage = MessageManager
-                                        .createGameUpdateNextMessage(action, game.getBoard(), proxy.pollNext(game));
+                                        .createGameUpdateNextMessage(action, game.getBoard(), game.getPreview());
                                 var updateMessage = MessageManager
                                         .createGameUpdateMessage(action, game.getBoard());
                                 if (game.getNext() == color) {

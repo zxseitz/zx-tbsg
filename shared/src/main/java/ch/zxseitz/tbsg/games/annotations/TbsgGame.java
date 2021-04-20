@@ -10,5 +10,4 @@ import java.lang.annotation.Target;
 public @interface TbsgGame {
     String name();
     Color[] colors();
-    Class<?> actionClass();
 }
