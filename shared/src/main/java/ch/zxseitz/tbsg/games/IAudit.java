@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.games;
 
 public interface IAudit {
-    Color color();
+    int color();
     Object audit();
 }
