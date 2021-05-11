@@ -4,6 +4,9 @@ import ch.zxseitz.tbsg.games.IGame;
 import ch.zxseitz.tbsg.games.annotations.Color;
 import ch.zxseitz.tbsg.games.annotations.TbsgGame;
 import ch.zxseitz.tbsg.games.exceptions.GameException;
+import ch.zxseitz.tbsg.server.websocket.Client;
+import ch.zxseitz.tbsg.server.websocket.Match;
+import ch.zxseitz.tbsg.server.websocket.Protector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -24,7 +27,7 @@ public class GameManager {
     private final Map<String, GameProxy> proxies;
 
     // separate method for testing
-    static GameProxy createProxy(Class<?> gameClass) throws GameException {
+    public static GameProxy createProxy(Class<?> gameClass) throws GameException {
         var interfaceType = Arrays.stream(gameClass.getGenericInterfaces())
                 .map(type -> (ParameterizedType) type)
                 .filter(type -> type.getRawType().equals(IGame.class))
@@ -44,6 +47,9 @@ public class GameManager {
         return new GameProxy(gameName, (Class<? extends IGame>) gameClass, actionClass, colors);
     }
 
+    public static Match createMatch(IGame<?> game, Map<Integer, Client> clients) {
+        return new Match(new Protector<>(game), clients);
+    }
 
     public GameManager() {
         proxies = new HashMap<>(10);

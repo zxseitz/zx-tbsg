@@ -4,6 +4,7 @@ import ch.zxseitz.tbsg.TbsgException;
 import ch.zxseitz.tbsg.games.GameState;
 import ch.zxseitz.tbsg.games.IGame;
 import ch.zxseitz.tbsg.games.exceptions.ClientException;
+import ch.zxseitz.tbsg.server.games.GameManager;
 import ch.zxseitz.tbsg.server.games.GameProxy;
 
 import java.util.*;
@@ -38,7 +39,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
      * @throws Exception if an exception occurs during the critical section
      */
     @SafeVarargs
-    private static <T, L> T safe(Callable<T> callable, IProtectable<L>... locks) throws Exception {
+    private <T, L> T safe(Callable<T> callable, IProtectable<L>... locks) throws Exception {
         var sorted = Arrays.stream(locks).sorted().collect(Collectors.toList());  //prevent deadlocks
         sorted.forEach(IProtectable::lock);
         try {
@@ -136,7 +137,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                                 var clients = new TreeMap<Integer, Client>();
                                 clients.put(1, client);
                                 clients.put(2, opponent);
-                                var match = new Match(new Protector<>(game), clients);
+                                var match = GameManager.createMatch(game, clients);
                                 client.setMatch(match);
                                 opponent.setMatch(match);
 
@@ -255,6 +256,4 @@ public class GameSocketHandler extends TextWebSocketHandler {
             logger.warn(ce.getMessage());
         }
     }
-
-
 }

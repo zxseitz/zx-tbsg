@@ -13,7 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-public class Client implements Comparable<Client>, IProtectable<Client> {
+public class Client implements IProtectable<Client> {
     private final WebSocketSession session;
     private final User user;
     private final Lock lock;
@@ -44,7 +44,7 @@ public class Client implements Comparable<Client>, IProtectable<Client> {
         try {
             session.sendMessage(new TextMessage(message));
         } catch (IOException e) {
-            throw new ClientException("Cannot send message " + message + " to client " + toString(), e);
+            throw new ClientException("Cannot send message " + message + " to client " + this, e);
         }
     }
 

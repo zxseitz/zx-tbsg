@@ -1,6 +1,7 @@
 package ch.zxseitz.tbsg.server.websocket;
 
 import ch.zxseitz.tbsg.games.IGame;
+import ch.zxseitz.tbsg.server.games.GameManager;
 import ch.zxseitz.tbsg.server.games.GameProxy;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Before;
@@ -23,7 +24,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({GameSocketHandler.class, ConcurrentHashMap.class, Client.class,
-        MessageManager.class, TextMessage.class})
+        MessageManager.class, GameManager.class, TextMessage.class})
 public class GameSocketHandlerTest {
     private final GameProxy proxy;
     private final ConcurrentHashMap<String, Client> lobby;
@@ -34,6 +35,7 @@ public class GameSocketHandlerTest {
         this.lobby = mock(ConcurrentHashMap.class);
         whenNew(ConcurrentHashMap.class).withNoArguments().thenReturn(this.lobby);
         mockStatic(MessageManager.class);
+        mockStatic(GameManager.class);
     }
 
     @Before
@@ -271,6 +273,7 @@ public class GameSocketHandlerTest {
             var session = mock(WebSocketSession.class);
             var challenges = new HashSet<Client>(1);
             var game = mock(IGame.class);
+            var match = mock(Match.class);
 
             challenges.add(opponent);
             doReturn(clientId).when(session).getId();
@@ -286,16 +289,17 @@ public class GameSocketHandlerTest {
             when(MessageManager.createChallengeAcceptMessage(client)).thenReturn(challengeAcceptMessage);
             when(MessageManager.createGameInitNextMessage(1, board, preview)).thenReturn(gameInitMessageNext);
             when(MessageManager.createGameInitMessage(2, board)).thenReturn(gameInitMessage);
+            when(GameManager.createMatch(eq(game), any())).thenReturn(match);
 
             var handler = new GameSocketHandler(proxy);
             handler.handleTextMessage(session, message);
-
-            // TODO verify match
 
             assertFalse(challenges.contains(opponent));
             verify(opponent, times(1)).send(challengeAcceptMessage);
             verify(opponent, times(1)).send(gameInitMessageNext);
             verify(client, times(1)).send(gameInitMessage);
+            verify(opponent, times(1)).setMatch(match);
+            verify(client, times(1)).setMatch(match);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
