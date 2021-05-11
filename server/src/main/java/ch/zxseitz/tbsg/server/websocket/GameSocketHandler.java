@@ -33,7 +33,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
      * Performs a critical section on several locks
      *
      * @param callable critical section
-     * @param locks list of lock
+     * @param locks    list of lock
      * @return critical section return value
      * @throws Exception if an exception occurs during the critical section
      */
@@ -66,7 +66,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
      * Handles client disconnection
      *
      * @param session client websocket session
-     * @param status close status
+     * @param status  close status
      */
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
@@ -130,19 +130,23 @@ public class GameSocketHandler extends TextWebSocketHandler {
                         // todo queuing accepts
                         // fixme color values
                         if (client.getMatch() == null && opponent.getMatch() == null) {
-                            opponent.send(MessageManager.createChallengeAcceptMessage(client));
-                            var game = proxy.createGame();
-                            var clients = new TreeMap<Integer, Client>();
-                            clients.put(1, client);
-                            clients.put(2, opponent);
-                            var match = new Match(new Protector<>(game), clients);
-                            client.setMatch(match);
-                            opponent.setMatch(match);
+                            if (client.getChallenges().remove(opponent)) {
+                                opponent.send(MessageManager.createChallengeAcceptMessage(client));
+                                var game = proxy.createGame();
+                                var clients = new TreeMap<Integer, Client>();
+                                clients.put(1, client);
+                                clients.put(2, opponent);
+                                var match = new Match(new Protector<>(game), clients);
+                                client.setMatch(match);
+                                opponent.setMatch(match);
 
-                            sendToClient(client, MessageManager
-                                    .createGameInitNextMessage(1, game.getBoard(), game.getPreview()));
-                            sendToClient(opponent, MessageManager
-                                    .createGameInitMessage(2, game.getBoard()));
+                                sendToClient(client, MessageManager
+                                        .createGameInitMessage(2, game.getBoard()));
+                                sendToClient(opponent, MessageManager
+                                        .createGameInitNextMessage(1, game.getBoard(), game.getPreview()));
+                            } else {
+                                throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId));
+                            }
                         } else {
                             throw new TbsgException(String.format("You or opponent [%s] is currently in game", opponentId));
                         }
@@ -170,11 +174,11 @@ public class GameSocketHandler extends TextWebSocketHandler {
                 case MessageManager.CLIENT_UPDATE: {
                     var action = MessageManager
                             .readClientGameArguments(argNode, proxy.getActionClass());
-                    safe(() ->  {
+                    safe(() -> {
                         var match = client.getMatch();
                         var gameProtector = match.getGame();
                         var opponent = match.getOpponent(client);
-                        safe(() ->  {
+                        safe(() -> {
                             var game = (IGame<Object>) gameProtector.get();
                             if (game.getState() == GameState.FINISHED) {
                                 sendToClient(client, MessageManager
@@ -214,7 +218,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                                             .createGameEndVictoryMessage(action, game.getBoard());
                                     var defeatMessage = MessageManager
                                             .createGameEndDefeatMessage(action, game.getBoard());
-                                    if(next == color) {
+                                    if (next == color) {
                                         sendToClient(client, victoryMessage);
                                         sendToClient(opponent, defeatMessage);
                                     } else {
