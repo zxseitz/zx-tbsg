@@ -239,12 +239,14 @@ public class GameSocketHandler extends TextWebSocketHandler {
                 }
             }
         } catch (Exception e) {
-            logger.warn(e.getMessage(), e);
+//            logger.warn(e.getMessage(), e);
+            logger.warn(e.getMessage());
             try {
                 //todo cache and try resending, recognize new client
                 sendToClient(client, MessageManager.createErrorMessage(e.getMessage()));
             } catch (Exception ce) {
-                logger.warn(ce.getMessage(), ce);
+//                logger.warn(ce.getMessage(), ce);
+                logger.warn(ce.getMessage());
             }
         }
     }

@@ -4,6 +4,7 @@ import ch.zxseitz.tbsg.games.IGame;
 import ch.zxseitz.tbsg.server.games.GameManager;
 import ch.zxseitz.tbsg.server.games.GameProxy;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,8 +62,7 @@ public class GameSocketHandlerTest {
             verify(lobby, times(1)).put(clientId, client);
             verify(client, times(1)).send(clientMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -81,8 +81,7 @@ public class GameSocketHandlerTest {
 
             verify(lobby, times(1)).remove(clientId);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -117,8 +116,7 @@ public class GameSocketHandlerTest {
             assertTrue(challenges.contains(opponent));
             verify(opponent, times(1)).send(opponentChallengeMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -148,8 +146,7 @@ public class GameSocketHandlerTest {
 
             verify(client, times(1)).send(errorMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -183,8 +180,7 @@ public class GameSocketHandlerTest {
             assertFalse(challenges.contains(opponent));
             verify(opponent, times(1)).send(opponentChallengeAbortMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -215,8 +211,7 @@ public class GameSocketHandlerTest {
 
             verify(client, times(1)).send(errorMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -252,8 +247,7 @@ public class GameSocketHandlerTest {
             verify(opponent, never()).send(opponentChallengeAbortMessage);
             verify(client, times(1)).send(errorMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -304,8 +298,7 @@ public class GameSocketHandlerTest {
             verify(opponent, times(1)).setMatch(match);
             verify(client, times(1)).setMatch(match);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -349,8 +342,7 @@ public class GameSocketHandlerTest {
             verify(client, never()).setMatch(match);
             verify(client, times(1)).send(errorMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -384,8 +376,7 @@ public class GameSocketHandlerTest {
             assertFalse(challenges.contains(client));
             verify(client, times(1)).send(errorMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -420,8 +411,7 @@ public class GameSocketHandlerTest {
             assertFalse(challenges.contains(client));
             verify(opponent, times(1)).send(challengeDeclineMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -456,8 +446,7 @@ public class GameSocketHandlerTest {
             assertTrue(challenges.contains(client));
             verify(client, times(1)).send(errorMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -491,8 +480,7 @@ public class GameSocketHandlerTest {
             assertFalse(challenges.contains(client));
             verify(client, times(1)).send(errorMessage);
         } catch (Exception e) {
-            e.printStackTrace();
-            fail();
+            Assert.fail(e.getMessage());
         }
     }
 }

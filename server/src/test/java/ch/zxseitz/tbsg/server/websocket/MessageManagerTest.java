@@ -65,8 +65,7 @@ public class MessageManagerTest {
             Assert.assertEquals(2, message.getValue().get("x").asInt());
             Assert.assertEquals(3, message.getValue().get("y").asInt());
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -80,8 +79,7 @@ public class MessageManagerTest {
             Assert.assertEquals(TestAction.class, action.getClass());
             Assert.assertEquals(4, ((TestAction) action).getIndex());
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -95,8 +93,7 @@ public class MessageManagerTest {
             Assert.fail();
         } catch (ActionException ignore) {
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -108,8 +105,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"opponent\":\"" + clientId + "\"}}",
                     MessageManager.createChallengeMessage(client));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -121,8 +117,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"opponent\":\"" + clientId + "\"}}",
                     MessageManager.createChallengeAbortMessage(client));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -134,8 +129,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"opponent\":\"" + clientId + "\"}}",
                     MessageManager.createChallengeAcceptMessage(client));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -147,8 +141,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"opponent\":\"" + clientId + "\"}}",
                     MessageManager.createChallengeDeclineMessage(client));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -161,8 +154,7 @@ public class MessageManagerTest {
                     MessageManager.createGameInitNextMessage(1, new int[] {0, 1, 2, 3},
                             Arrays.asList(new TestAction(1), new TestAction(4))));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -173,8 +165,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"color\":1,\"board\":[0,1,2,3]}}",
                     MessageManager.createGameInitMessage(1, new int[] {0, 1, 2, 3}));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -187,8 +178,7 @@ public class MessageManagerTest {
                     MessageManager.createGameUpdateNextMessage(new TestAction(0), new int[] {0, 1, 2, 3},
                             Arrays.asList(new TestAction(1), new TestAction(4))));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -199,8 +189,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"source\":{\"index\":0},\"board\":[0,1,2,3]}}",
                     MessageManager.createGameUpdateMessage(new TestAction(0), new int[] {0, 1, 2, 3}));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -211,8 +200,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"source\":{\"index\":0},\"board\":[0,1,2,3]}}",
                     MessageManager.createGameEndVictoryMessage(new TestAction(0), new int[] {0, 1, 2, 3}));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -223,8 +211,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"source\":{\"index\":0},\"board\":[0,1,2,3]}}",
                     MessageManager.createGameEndDefeatMessage(new TestAction(0), new int[] {0, 1, 2, 3}));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 
@@ -235,8 +222,7 @@ public class MessageManagerTest {
                             + ",\"args\":{\"source\":{\"index\":0},\"board\":[0,1,2,3]}}",
                     MessageManager.createGameEndTieMessage(new TestAction(0), new int[] {0, 1, 2, 3}));
         } catch (Exception e) {
-            e.printStackTrace();
-            Assert.fail();
+            Assert.fail(e.getMessage());
         }
     }
 }
