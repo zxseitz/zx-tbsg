@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.games;
 
 public interface IAudit {
-    IPlayer getPlayer();
-    IEvent getEvent();
+    int color();
+    Object audit();
 }

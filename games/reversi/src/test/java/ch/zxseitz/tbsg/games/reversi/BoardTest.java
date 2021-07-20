@@ -1,6 +1,5 @@
-package ch.zxseitz.tbsg.games.reversi.core;
+package ch.zxseitz.tbsg.games.reversi;
 
-import ch.zxseitz.tbsg.games.reversi.Reversi;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,12 +38,12 @@ public class BoardTest {
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0,
         });
-        Assert.assertEquals(Reversi.TOKEN_UNDEFINED, board.get(-1));
-        Assert.assertEquals(Reversi.TOKEN_EMPTY, board.get(0));
-        Assert.assertEquals(Reversi.TOKEN_BLACK, board.get(18));
-        Assert.assertEquals(Reversi.TOKEN_WHITE, board.get(45));
-        Assert.assertEquals(Reversi.TOKEN_EMPTY, board.get(63));
-        Assert.assertEquals(Reversi.TOKEN_UNDEFINED, board.get(64));
+        Assert.assertEquals(-1, board.get(-1));
+        Assert.assertEquals(0, board.get(0));
+        Assert.assertEquals(1, board.get(18));
+        Assert.assertEquals(2, board.get(45));
+        Assert.assertEquals(0, board.get(63));
+        Assert.assertEquals(-1, board.get(64));
     }
 
     @Test
@@ -59,36 +58,36 @@ public class BoardTest {
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0,
         });
-        Assert.assertEquals(Reversi.TOKEN_UNDEFINED, board.get(-1, 0));
-        Assert.assertEquals(Reversi.TOKEN_UNDEFINED, board.get(0, -1));
-        Assert.assertEquals(Reversi.TOKEN_EMPTY, board.get(0, 0));
-        Assert.assertEquals(Reversi.TOKEN_BLACK, board.get(2, 2));
-        Assert.assertEquals(Reversi.TOKEN_WHITE, board.get(5, 5));
-        Assert.assertEquals(Reversi.TOKEN_EMPTY, board.get(7, 7));
-        Assert.assertEquals(Reversi.TOKEN_UNDEFINED, board.get(8, 0));
-        Assert.assertEquals(Reversi.TOKEN_UNDEFINED, board.get(0, 8));
+        Assert.assertEquals(-1, board.get(-1, 0));
+        Assert.assertEquals(-1, board.get(0, -1));
+        Assert.assertEquals(0, board.get(0, 0));
+        Assert.assertEquals(1, board.get(2, 2));
+        Assert.assertEquals(2, board.get(5, 5));
+        Assert.assertEquals(0, board.get(7, 7));
+        Assert.assertEquals(-1, board.get(8, 0));
+        Assert.assertEquals(-1, board.get(0, 8));
     }
 
     @Test
     public void testSetByIndex() {
         var board = new Board();
-        Assert.assertFalse(board.set(-1, Reversi.TOKEN_EMPTY));
-        Assert.assertTrue(board.set(0, Reversi.TOKEN_EMPTY));
-        Assert.assertTrue(board.set(63, Reversi.TOKEN_EMPTY));
-        Assert.assertFalse(board.set(64, Reversi.TOKEN_EMPTY));
+        Assert.assertFalse(board.set(-1, 0));
+        Assert.assertTrue(board.set(0, 0));
+        Assert.assertTrue(board.set(63, 0));
+        Assert.assertFalse(board.set(64, 0));
     }
 
     @Test
     public void testSetByIndices() throws ArrayIndexOutOfBoundsException {
         var board = new Board();
-        board.set(Set.of(34, 47, 63), Reversi.TOKEN_EMPTY);
+        board.set(Set.of(34, 47, 63), 0);
     }
 
     @Test
     public void testSetByIndicesFail() {
         try {
             var board = new Board();
-            board.set(Set.of(34, 47, 65), Reversi.TOKEN_EMPTY);
+            board.set(Set.of(34, 47, 65), 0);
             Assert.fail();
         } catch (ArrayIndexOutOfBoundsException ignored) {
 
@@ -97,7 +96,7 @@ public class BoardTest {
 
     @Test
     public void testGetOpponentTokens() {
-        var board = new Board(new int[] {
+        var board = new Board(new int[]{
                 0, 0, 0, 2, 0, 0, 1, 0,
                 0, 1, 0, 2, 0, 1, 0, 0,
                 0, 0, 1, 2, 0, 0, 0, 0,
@@ -106,7 +105,7 @@ public class BoardTest {
                 0, 1, 0, 1, 0, 1, 0, 0,
                 0, 0, 0, 1, 0, 0, 2, 0,
                 0, 0, 0, 2, 0, 0, 0, 0,
-                         //
+                //
         });
         Assert.assertTrue(board.getOpponentTokens(27, 2, 1)
                 .containsAll(Set.of(36, 45, 35, 43, 51)));

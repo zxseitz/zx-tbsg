@@ -1,118 +1,146 @@
 package ch.zxseitz.tbsg.games.reversi;
 
 import ch.zxseitz.tbsg.games.*;
-import ch.zxseitz.tbsg.games.reversi.core.Board;
-import ch.zxseitz.tbsg.games.reversi.core.ReversiMatch;
+import ch.zxseitz.tbsg.games.annotations.TbsgGame;
+import ch.zxseitz.tbsg.games.annotations.Color;
+import ch.zxseitz.tbsg.games.exceptions.GameException;
 
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-@TbsgGame("reversi")
-public class Reversi implements IGame {
-    public static final int TOKEN_UNDEFINED = -1;
-    public static final int TOKEN_EMPTY = 0;
-    public static final int TOKEN_BLACK = 1;
-    public static final int TOKEN_WHITE = 2;
-
-    public static final int CLIENT_PLACE = 2000;
-
-    public static final int SERVER_INIT_NEXT_PLAYER = 2100;
-    public static final int SERVER_INIT_NEXT_OPPONENT = 2101;
-    public static final int SERVER_NEXT_PLAYER = 2110;
-    public static final int SERVER_NEXT_OPPONENT = 2111;
-    public static final int SERVER_VICTORY = 2120;
-    public static final int SERVER_DEFEAT = 2121;
-    public static final int SERVER_TIE = 2122;
-
-    private static synchronized String createMatchId() {
+@TbsgGame(name = "reversi", colors = {
+        @Color(value = 1, name = "black"),
+        @Color(value = 2, name = "white"),
+})
+public class Reversi implements IGame<Action> {
+    private static synchronized String generateId() {
         return UUID.randomUUID().toString();
     }
 
-    public static IEvent createInitPlayerNextEvent(int color, int[] fields, int[] preview) {
-        var event = new Event(Reversi.SERVER_INIT_NEXT_PLAYER);
-        event.addArgument("color", color);
-        event.addArgument("board", fields);
-        event.addArgument("preview", preview);
-        return event;
+    @Override
+    public int compareTo(IGame<?> o) {
+        return id.compareTo(o.getId());
     }
 
-    public static IEvent createInitOpponentNextEvent(int color, int[] fields) {
-        var event = new Event(Reversi.SERVER_INIT_NEXT_OPPONENT);
-        event.addArgument("color", color);
-        event.addArgument("board", fields);
-        return event;
+    private final String id;
+    private final Board board;
+    private final Map<Action, Collection<Integer>> actions;
+    int next; //accessible for testing
+    GameState state; //accessible for testing
+
+    public Reversi() {
+        this(new Board(), new TreeMap<>());
     }
 
-    public static IEvent createPlayerNextEvent(int source, int[] fields, int[] preview) {
-        var event = new Event(Reversi.SERVER_NEXT_PLAYER);
-        event.addArgument("source", source);
-        event.addArgument("board", fields);
-        event.addArgument("preview", preview);
-        return event;
-    }
-
-    public static IEvent createOpponentNextEvent(int source, int[] fields) {
-        var event = new Event(Reversi.SERVER_NEXT_OPPONENT);
-        event.addArgument("source", source);
-        event.addArgument("board", fields);
-        return event;
-    }
-
-    public static IEvent createVictoryEvent(int source, int[] fields) {
-        var event = new Event(Reversi.SERVER_VICTORY);
-        event.addArgument("source", source);
-        event.addArgument("board", fields);
-        return event;
-    }
-
-    public static IEvent createDefeatEvent(int source, int[] fields) {
-        var event = new Event(Reversi.SERVER_DEFEAT);
-        event.addArgument("source", source);
-        event.addArgument("board", fields);
-        return event;
-    }
-
-    public static IEvent createTieEvent(int source, int[] fields) {
-        var event = new Event(Reversi.SERVER_TIE);
-        event.addArgument("source", source);
-        event.addArgument("board", fields);
-        return event;
+    /**
+     * Test constructor
+     *
+     * @param board
+     * @param actions
+     */
+    public Reversi(Board board, Map<Action, Collection<Integer>> actions) {
+        this.id = generateId();
+        this.board = board;
+        this.actions = actions;
+        this.state = GameState.CREATED;
     }
 
     @Override
-    public IMatch createMatch(List<IClient> clients) {
-        if (clients.size() != 2) {
-            throw new IllegalArgumentException("Two clients are needed to create a match, given " + clients.size());
+    public void init() {
+        this.board.init();
+        this.actions.put(new Action(19), Collections.singletonList(27));
+        this.actions.put(new Action(26), Collections.singletonList(27));
+        this.actions.put(new Action(37), Collections.singletonList(36));
+        this.actions.put(new Action(44), Collections.singletonList(36));
+        this.next = 1;
+        this.state = GameState.RUNNING;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public int getNext() {
+        return next;
+    }
+
+    @Override
+    public GameState getState() {
+        return state;
+    }
+
+    @Override
+    public int[] getBoard() {
+        return board.getFields();
+    }
+
+    @Override
+    public Collection<Action> getPreview() {
+        return actions.keySet();
+    }
+
+    @Override
+    public void update(Action action) throws GameException {
+        if (action == null) {
+            throw new GameException("Action is null");
         }
-        var black = clients.get(0);
-        var white = clients.get(1);
-        if (black == null || white == null) {
-            throw new IllegalArgumentException("Clients contains null refs");
+        var collection = actions.get(action);
+        if (collection == null) {
+            throw new GameException("Index defined in action is invalid");
         }
-        return new ReversiMatch(createMatchId(), black, white, new Board());
+        board.set(action.getIndex(), next);
+        board.set(collection, next);
+        var opponentColor = 3 - next;
+
+        // update state and actions
+        actions.clear();
+        var emptyFields = new TreeSet<Integer>();
+        var blackCount = 0;
+        var whiteCount = 0;
+        for (var i = 0; i < 64; i++) {
+            switch (board.get(i)) {
+                case 1:
+                    blackCount++;
+                    break;
+                case 2:
+                    whiteCount++;
+                    break;
+                default:
+                    emptyFields.add(i);
+            }
+        }
+
+        // check next opponent turn
+        addActions(emptyFields, opponentColor, next);
+        if (actions.size() > 0) {
+            this.next = opponentColor;
+            return;
+        }
+
+        // check next own turn, if opponent has no legal moves
+        addActions(emptyFields, next, opponentColor);
+        if (actions.size() > 0) {
+            return;
+        }
+
+        // check end state, if no one has legal moves
+        this.state = GameState.FINISHED;
+        if (blackCount > whiteCount) {
+            this.next = 1;
+        } else if (blackCount < whiteCount) {
+            this.next = 2;
+        } else {
+            this.next = 0;
+        }
     }
 
-    @Override
-    public InputStream readFile(Path path) {
-//        return getClass().getClassLoader().getResourceAsStream(path.toString());
-        return null;
+    private void addActions(Set<Integer> emptyFields, int color, int opponentColor) {
+        for (var ai : emptyFields) {
+            var actions = board.getOpponentTokens(ai, color, opponentColor);
+            if (actions.size() > 0) {
+                this.actions.put(new Action(ai), actions);
+            }
+        }
     }
-
-    @Override
-    public Set<String> listStyles() {
-        return Set.of();
-    }
-
-    @Override
-    public Set<String> listScripts() {
-        return Set.of();
-    }
-
-//    @TbsgWebHook(path = "index", method = TbsgWebHook.Method.GET)
-//    public String test(String json) {
-//        return "reversi test: " + json;
-//    }
 }

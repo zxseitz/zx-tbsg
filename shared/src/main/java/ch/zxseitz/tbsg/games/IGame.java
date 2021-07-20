@@ -1,14 +1,15 @@
 package ch.zxseitz.tbsg.games;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
+import ch.zxseitz.tbsg.games.exceptions.GameException;
 
-public interface IGame {
-    IMatch createMatch(List<IClient> clients);
-    InputStream readFile(Path path) throws IOException;
-    Set<String> listStyles();
-    Set<String> listScripts();
+import java.util.Collection;
+
+public interface IGame<T> extends Comparable<IGame<?>> {
+    String getId();
+    int getNext();
+    GameState getState();
+    int[] getBoard();
+    Collection<T> getPreview();
+    void init();
+    void update(T action) throws GameException;
 }

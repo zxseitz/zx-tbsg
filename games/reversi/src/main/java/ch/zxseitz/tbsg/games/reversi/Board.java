@@ -1,7 +1,4 @@
-package ch.zxseitz.tbsg.games.reversi.core;
-
-
-import ch.zxseitz.tbsg.games.reversi.Reversi;
+package ch.zxseitz.tbsg.games.reversi;
 
 import java.util.*;
 
@@ -31,6 +28,7 @@ public class Board {
 
     /**
      * Test constructor
+     *
      * @param fields
      */
     public Board(int[] fields) {
@@ -39,6 +37,14 @@ public class Board {
             throw new IllegalArgumentException("Input array length is " + fields.length + ", expected " + SIZE);
         }
         System.arraycopy(fields, 0, this.fields, 0, SIZE);
+    }
+
+    public void init() {
+        Arrays.fill(fields, 0);
+        fields[27] = 2;
+        fields[28] = 1;
+        fields[35] = 1;
+        fields[36] = 2;
     }
 
     /**
@@ -53,18 +59,6 @@ public class Board {
         return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
 
-    /**
-     * Gets the state of a specific field.
-     *
-     * @param index field index
-     * @return field state
-     */
-    public int get(int index) {
-        if (index >= 0 && index < SIZE) {
-            return fields[index];
-        }
-        return Reversi.TOKEN_UNDEFINED;
-    }
 
     /**
      * Sets the state of a specific field.
@@ -83,7 +77,7 @@ public class Board {
     }
 
     public void set(Collection<Integer> fields, int state) {
-        fields.forEach(field -> this.fields[field] = state);
+        fields.forEach(index -> this.fields[index] = state);
     }
 
     public Collection<Integer> getOpponentTokens(int index, int state, int stateOpponent) {
@@ -115,8 +109,21 @@ public class Board {
         return  c == color ? fields : EMPTY_INTS;
     }
 
+    /**
+     * Gets the state of a specific field.
+     *
+     * @param index field index
+     * @return field state
+     */
+    public int get(int index) {
+        if (index >= 0 && index < SIZE) {
+            return fields[index];
+        }
+        return -1;
+    }
+
     public int get(int x, int y) {
-        return covers(x, y) ? fields[getIndex(x, y)] : Reversi.TOKEN_UNDEFINED;
+        return covers(x, y) ? fields[getIndex(x, y)] : -1;
     }
 
     public int[] getFields() {
