@@ -131,7 +131,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                         // todo queuing accepts
                         // fixme color values
                         if (client.getMatch() == null && opponent.getMatch() == null) {
-                            if (client.getChallenges().remove(opponent)) {
+                            if (opponent.getChallenges().remove(client)) {
                                 opponent.send(MessageManager.createChallengeAcceptMessage(client));
                                 var game = proxy.createGame();
                                 var clients = new TreeMap<Integer, Client>();
@@ -140,11 +140,12 @@ public class GameSocketHandler extends TextWebSocketHandler {
                                 var match = GameManager.createMatch(game, clients);
                                 client.setMatch(match);
                                 opponent.setMatch(match);
+                                game.init();
 
                                 sendToClient(client, MessageManager
-                                        .createGameInitMessage(2, game.getBoard()));
-                                sendToClient(opponent, MessageManager
                                         .createGameInitNextMessage(1, game.getBoard(), game.getPreview()));
+                                sendToClient(opponent, MessageManager
+                                        .createGameInitMessage(2, game.getBoard()));
                             } else {
                                 throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId));
                             }
@@ -184,11 +185,13 @@ public class GameSocketHandler extends TextWebSocketHandler {
                             if (game.getState() == GameState.FINISHED) {
                                 sendToClient(client, MessageManager
                                         .createErrorMessage("Game is already finished"));
+                                return null;
                             }
                             var color = match.getColor(client);
                             if (game.getNext() != color) {
                                 sendToClient(client, MessageManager
                                         .createErrorMessage("Not your turn"));
+                                return null;
                             }
 
                             game.update(action);
@@ -232,6 +235,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                         }, gameProtector);
                         return null;
                     }, client);
+                    break;
                 }
                 default: {
                     sendToClient(client, MessageManager.createErrorMessage("unknown message code "

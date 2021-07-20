@@ -10,5 +10,6 @@ public interface IGame<T> extends Comparable<IGame<?>> {
     GameState getState();
     int[] getBoard();
     Collection<T> getPreview();
+    void init();
     void update(T action) throws GameException;
 }

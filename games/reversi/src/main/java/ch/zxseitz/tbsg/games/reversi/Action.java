@@ -1,9 +1,15 @@
 package ch.zxseitz.tbsg.games.reversi;
 
 public class Action implements Comparable<Action> {
-    private final int index;
+    private int index;
+
+    public Action() {}
 
     public Action(int index) {
+        this.index = index;
+    }
+
+    public void setIndex(int index) {
         this.index = index;
     }
 

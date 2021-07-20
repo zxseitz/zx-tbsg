@@ -67,7 +67,7 @@ public class MessageManager {
         var argNode = node.get(name);
         if (argNode != null) {
             try {
-                mapper.convertValue(argNode, type);
+                return mapper.convertValue(argNode, type);
             } catch (IllegalArgumentException iae) {
                 throw new ActionException("Cannot convert argument " + name + " to " + type.getSimpleName());
             }

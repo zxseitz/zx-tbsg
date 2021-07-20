@@ -28,9 +28,7 @@ public class Reversi implements IGame<Action> {
     GameState state; //accessible for testing
 
     public Reversi() {
-        this.id = generateId();
-        this.board = new Board();
-        this.actions = new TreeMap<>();
+        this(new Board(), new TreeMap<>());
     }
 
     /**
@@ -43,6 +41,18 @@ public class Reversi implements IGame<Action> {
         this.id = generateId();
         this.board = board;
         this.actions = actions;
+        this.state = GameState.CREATED;
+    }
+
+    @Override
+    public void init() {
+        this.board.init();
+        this.actions.put(new Action(19), Collections.singletonList(27));
+        this.actions.put(new Action(26), Collections.singletonList(27));
+        this.actions.put(new Action(37), Collections.singletonList(36));
+        this.actions.put(new Action(44), Collections.singletonList(36));
+        this.next = 1;
+        this.state = GameState.RUNNING;
     }
 
     @Override
