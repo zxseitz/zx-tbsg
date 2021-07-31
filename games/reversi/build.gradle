@@ -1,7 +1,6 @@
-import java.text.SimpleDateFormat
-
 plugins {
     id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.21'
 }
 
 group = 'ch.zxseitz'
@@ -15,10 +14,13 @@ repositories {
 dependencies {
     implementation project(':shared')
 
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+
     testImplementation 'junit:junit:4.13'
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.7.0")
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
 
 test {

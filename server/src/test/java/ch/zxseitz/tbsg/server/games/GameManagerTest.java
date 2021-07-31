@@ -19,6 +19,11 @@ public class GameManagerTest {
     })
     private static class TestGame implements IGame<TestAction> {
         @Override
+        public void init() {
+
+        }
+
+        @Override
         public String getId() {
             return null;
         }
@@ -69,6 +74,11 @@ public class GameManagerTest {
     }
 
     private static class TestGameMissingAnnotation implements IGame<TestAction> {
+        @Override
+        public void init() {
+
+        }
+
         @Override
         public String getId() {
             return null;
@@ -121,6 +131,11 @@ public class GameManagerTest {
             @Color(value = 0, name = "black")
     })
     private static class TestGameInvalidColor implements IGame<TestAction> {
+        @Override
+        public void init() {
+
+        }
+
         @Override
         public String getId() {
             return null;
