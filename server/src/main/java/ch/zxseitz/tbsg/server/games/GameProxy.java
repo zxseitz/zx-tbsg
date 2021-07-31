@@ -11,10 +11,10 @@ import java.util.Map;
 public class GameProxy {
     private final String name;
     private final Map<Integer, String> colors;
-    private final Class<? extends IGame> gameClass;
+    private final Class<? extends IGame<?>> gameClass;
     private final Class<?> actionClass;
 
-    public GameProxy(String name, Class<? extends IGame> gameClass,
+    public GameProxy(String name, Class<? extends IGame<?>> gameClass,
                      Class<?> actionClass, Map<Integer, String> colors) {
         this.name = name;
         this.gameClass = gameClass;
@@ -34,7 +34,7 @@ public class GameProxy {
         try {
             return gameClass.getConstructor().newInstance();
         } catch (Exception e) {
-            throw new TbsgException("Unable to create " + name + " game instance");
+            throw new TbsgException("Unable to create " + name + " game instance", e);
         }
     }
 

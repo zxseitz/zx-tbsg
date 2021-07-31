@@ -31,20 +31,19 @@ public class GameManager {
         var interfaceType = Arrays.stream(gameClass.getGenericInterfaces())
                 .map(type -> (ParameterizedType) type)
                 .filter(type -> type.getRawType().equals(IGame.class))
-                .findFirst().orElseThrow(() -> new GameException("Missing interface IGame"));
+                .findFirst().orElseThrow(() -> new GameException("Missing interface IGame", null));
         var actionClass = (Class<?>) interfaceType.getActualTypeArguments()[0];
         var gameAnnotation = gameClass.getAnnotation(TbsgGame.class);
         if (gameAnnotation == null) {
-            throw new GameException("Missing @TbsgGame annotation in game class " + gameClass.getSimpleName());
+            throw new GameException("Missing @TbsgGame annotation in game class " + gameClass.getSimpleName(), null);
         }
         var gameName = gameAnnotation.name();
         var colors = Arrays.stream(gameAnnotation.colors())
                 .collect(Collectors.toMap(Color::value, Color::name));
         if (colors.get(0) != null) {
-            throw new GameException("Color " + colors.get(0)
-                    + " cannot have value 0.");
+            throw new GameException("Color " + colors.get(0) + " cannot have value 0.", null);
         }
-        return new GameProxy(gameName, (Class<? extends IGame>) gameClass, actionClass, colors);
+        return new GameProxy(gameName, (Class<? extends IGame<?>>) gameClass, actionClass, colors);
     }
 
     public static Match createMatch(IGame<?> game, Map<Integer, Client> clients) {

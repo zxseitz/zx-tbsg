@@ -5,7 +5,7 @@ import ch.zxseitz.tbsg.games.annotations.TbsgGame
 import ch.zxseitz.tbsg.games.annotations.Color
 import ch.zxseitz.tbsg.games.exceptions.GameException
 
-import java.util.*;
+import java.util.*
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
@@ -21,28 +21,21 @@ class Reversi(private val _board: Board = Board(),
         }
     }
 
-    private val _id = generateId()
-    override fun getId(): String {
-        return _id
-    }
+    override val id: String = generateId()
 
-    override fun getBoard(): IntArray {
-        return _board.fields
-    }
+    override val board: IntArray
+        get() = _board.fields
 
-    override fun getPreview(): MutableCollection<Action> {
-        return HashSet(_actions.keys)
-    }
+    override val preview: MutableCollection<Action>
+        get() = HashSet(_actions.keys)
 
     internal var _next: Int = 0 //accessible for testing
-    override fun getNext(): Int {
-        return _next
-    }
+    override val next: Int
+        get() = _next
 
     internal var _state: GameState = GameState.CREATED //accessible for testing
-    override fun getState(): GameState {
-        return _state
-    }
+    override val state: GameState
+        get() = _state
 
     override fun compareTo(other: IGame<*>): Int {
         return id.compareTo(other.id)
@@ -86,18 +79,14 @@ class Reversi(private val _board: Board = Board(),
 
         // check next own turn, if opponent has no legal moves
         addActions(emptyFields, _next, opponentColor)
-        if (_actions.isNotEmpty()) {
-            return
-        }
+        if (_actions.isNotEmpty()) return
 
         // check end state, if no one has legal moves
         _state = GameState.FINISHED
-        _next = if (blackCount > whiteCount) {
-            1
-        } else if (blackCount < whiteCount) {
-            2
-        } else {
-            0
+        _next = when {
+            blackCount > whiteCount -> 1
+            blackCount < whiteCount -> 2
+            else -> 0
         }
     }
 

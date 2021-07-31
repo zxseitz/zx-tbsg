@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.games;
 
-public enum GameState {
+enum class GameState {
     CREATED,
     RUNNING,
     FINISHED,

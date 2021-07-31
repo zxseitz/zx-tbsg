@@ -96,7 +96,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     var opponentId = MessageManager.readClientArgument(argNode, "opponent", String.class);
                     var opponent = clients.get(opponentId);
                     if (opponent == null) {
-                        throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId));
+                        throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId), null);
                     }
                     safe(() -> {
                         client.getChallenges().add(opponent);
@@ -109,13 +109,13 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     var opponentId = MessageManager.readClientArgument(argNode, "opponent", String.class);
                     var opponent = clients.get(opponentId);
                     if (opponent == null) {
-                        throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId));
+                        throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId), null);
                     }
                     safe(() -> {
                         if (client.getChallenges().remove(opponent)) {
                             opponent.send(MessageManager.createChallengeAbortMessage(client));
                         } else {
-                            throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId));
+                            throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId), null);
                         }
                         return null;
                     }, client);
@@ -125,7 +125,7 @@ public class GameSocketHandler extends TextWebSocketHandler {
                     var opponentId = MessageManager.readClientArgument(argNode, "opponent", String.class);
                     var opponent = clients.get(opponentId);
                     if (opponent == null) {
-                        throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId));
+                        throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId), null);
                     }
                     safe(() -> {
                         // todo queuing accepts
@@ -147,10 +147,10 @@ public class GameSocketHandler extends TextWebSocketHandler {
                                 sendToClient(opponent, MessageManager
                                         .createGameInitMessage(2, game.getBoard()));
                             } else {
-                                throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId));
+                                throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId), null);
                             }
                         } else {
-                            throw new TbsgException(String.format("You or opponent [%s] is currently in game", opponentId));
+                            throw new TbsgException(String.format("You or opponent [%s] is currently in game", opponentId), null);
                         }
                         return null;
                     }, client, opponent);
@@ -161,13 +161,13 @@ public class GameSocketHandler extends TextWebSocketHandler {
                             .readClientArgument(argNode, "opponent", String.class);
                     var opponent = clients.get(opponentId);
                     if (opponent == null) {
-                        throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId));
+                        throw new TbsgException(String.format("Opponent [%s] is not connected", opponentId), null);
                     }
                     safe(() -> {
                         if (opponent.getChallenges().remove(client)) {
                             opponent.send(MessageManager.createChallengeDeclineMessage(client));
                         } else {
-                            throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId));
+                            throw new TbsgException(String.format("Opponent [%s] is not challenged by you", opponentId), null);
                         }
                         return null;
                     }, opponent);
