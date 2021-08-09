@@ -1,6 +1,6 @@
 package ch.zxseitz.tbsg.games.reversi
 
-class Board(private val _fields: IntArray = IntArray(SIZE)) {
+open class Board(private val _fields: IntArray = IntArray(SIZE)) {
     companion object {
         const val SIZE = 64
         private val EMPTY_INTS = ArrayList<Int>(0)
@@ -68,15 +68,13 @@ class Board(private val _fields: IntArray = IntArray(SIZE)) {
         var ix = x + dx
         var iy = y + dy
         var i = index(ix, iy)
-        var c = fields[i]
-        while (i >= 0 && c == opponentColor) {
+        while (i in 0 until SIZE && this[i] == opponentColor) {
             fields.add(i)
             ix += dx
             iy += dy
             i = index(ix, iy)
-            c = fields[i]
         }
-        return if(c == color) fields else EMPTY_INTS
+        return if(this[i] == color) fields else EMPTY_INTS
     }
 
     override fun toString(): String
