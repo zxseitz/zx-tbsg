@@ -75,55 +75,57 @@ class ReversiTest {
         // verify new white actions
         assertEquals(indexNextWhite, actionWhiteSlot.captured.index)
         assertEquals(actionsNextWhite, actionsNextWhiteSlot.captured)
+        // check next game state
         assertEquals(GameState.RUNNING, match.state)
         assertEquals(2, match.next)
     }
 
-//    @Test
-//    fun testInvokePlaceBlackNextBlack() {
-//        val indexBlack = 39
-//        val indexNextBlack = 58
-//        val blackAction = mockkClass(Action::class)
-//        val blackNextAction = mockkClass(Action::class)
-//        val actionsBlack = setOf(38, 37, 36)
-//        val actionsNextBlack = setOf(50, 42, 34)
-//        val fields = intArrayOf(
-//            0, 0, 2, 2, 2, 2, 0, 0,
-//            0, 0, 2, 2, 2, 1, 0, 0,
-//            1, 0, 1, 1, 2, 2, 2, 2,
-//            1, 2, 2, 1, 2, 1, 2, 2,
-//            1, 1, 1, 1, 2, 2, 2, 0,
-//            1, 2, 1, 1, 2, 2, 0, 1,
-//            0, 2, 1, 1, 1, 0, 0, 0,
-//            0, 0, 0, 1, 1, 1, 1, 0
-//        )
-//
-//        fields.forEach { i -> every { board[i] } returns fields[i] }
-//        every { blackAction.index } returns indexBlack
-//        doReturn(indexNextBlack).`when`(blackNextAction).index
-//        every { board.fields }
-//        doReturn(fields).`when`(board).fields
-//        doReturn(actionsNextBlack).`when`(board).getOpponentTokens(indexNextBlack, 2, 1)
-//        doReturn(0).doReturn(1).`when`(actions).size
-//        doReturn(actionsBlack).`when`(actions)[blackAction]
-//        PowerMockito.whenNew(Action::class.java).withArguments(eq(indexNextBlack)).thenReturn(blackNextAction)
-//
-//        val match = Reversi(board, actions)
-//        match._state = GameState.RUNNING
-//        match._next = 1
-//        match.update(blackAction)
-//
-//        // verify black board changes
-//        verify(board, times(1))[indexBlack] = 1
-//        verify(board, times(1))[actionsBlack] = 1
-//
-//        // verify new black actions
-//        verify(actions, times(1))[eq(blackNextAction)] = eq(actionsNextBlack)
-//
-//        assertEquals(GameState.RUNNING, match.state)
-//        assertEquals(1, match.next)
-//    }
-//
+    @Test
+    fun testInvokePlaceBlackNextBlack() {
+        val indexBlack = 39
+        val indexNextBlack = 58
+        val blackAction = mockkClass(Action::class)
+        val actionsBlack = setOf(38, 37, 36)
+        val actionsNextBlack = setOf(50, 42, 34)
+        val fields = intArrayOf(
+            0, 0, 2, 2, 2, 2, 0, 0,
+            0, 0, 2, 2, 2, 1, 0, 0,
+            1, 0, 1, 1, 2, 2, 2, 2,
+            1, 2, 2, 1, 2, 1, 2, 2,
+            1, 1, 1, 1, 2, 2, 2, 0,
+            1, 2, 1, 1, 2, 2, 0, 1,
+            0, 2, 1, 1, 1, 0, 0, 0,
+            0, 0, 0, 1, 1, 1, 1, 0
+        )
+
+        fields.forEach { i -> every { board[i] } returns fields[i] }
+        every { blackAction.index } returns indexBlack
+        every { board.fields } returns fields
+        every { board.getOpponentTokens(indexNextBlack, 2, 1) } returns actionsNextBlack
+        every { actions.size } returns 0 andThen 1
+        every { actions[blackAction] } returns actionsBlack
+        val actionBlackSlot = slot<Action>()
+        val actionsNextBlackSlot = slot<Collection<Int>>()
+        every { actions[capture(actionBlackSlot)] = capture(actionsNextBlackSlot) } answers {}
+
+        val match = Reversi(board, actions)
+        match._state = GameState.RUNNING
+        match._next = 1
+        match.update(blackAction)
+
+        // verify black board changes
+        verify(exactly = 1) {
+            board[indexBlack] = 1
+            board[actionsBlack] = 1
+        }
+        // verify new black actions
+        assertEquals(indexNextBlack, actionBlackSlot.captured.index)
+        assertEquals(actionsNextBlack, actionsNextBlackSlot.captured)
+        // check next game state
+        assertEquals(GameState.RUNNING, match.state)
+        assertEquals(1, match.next)
+    }
+
 //    @Test
 //    fun testInvokePlaceBlackWon() {
 //        val indexBlack = 39

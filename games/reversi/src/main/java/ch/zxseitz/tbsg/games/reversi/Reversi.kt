@@ -72,14 +72,14 @@ class Reversi(private val _board: Board = Board(),
 
         // check next opponent turn
         addActions(emptyFields, opponentColor, _next)
-        if (_actions.isNotEmpty()) {
+        if (_actions.size > 0) { // Map::isNotEmpty inline function cannot be mocked by MockK, Aug. 2021
             _next = opponentColor
             return
         }
 
         // check next own turn, if opponent has no legal moves
         addActions(emptyFields, _next, opponentColor)
-        if (_actions.isNotEmpty()) return
+        if (_actions.size > 0) return // Map::isNotEmpty inline function cannot be mocked by MockK, Aug. 2021
 
         // check end state, if no one has legal moves
         _state = GameState.FINISHED
@@ -93,7 +93,7 @@ class Reversi(private val _board: Board = Board(),
     private fun addActions(emptyFields: Set<Int>, color: Int, opponentColor: Int) {
         for (ai in emptyFields) {
             val actions = _board.getOpponentTokens(ai, color, opponentColor)
-            if (actions.isNotEmpty()) {
+            if (actions.size > 0) { // Set::isNotEmpty inline function cannot be mocked by MockK, Aug. 2021
                 _actions[Action(ai)] = actions
             }
         }
