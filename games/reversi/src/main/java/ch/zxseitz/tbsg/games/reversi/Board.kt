@@ -1,9 +1,11 @@
 package ch.zxseitz.tbsg.games.reversi
 
+import java.util.TreeSet
+
 open class Board(private val _fields: IntArray = IntArray(SIZE)) {
     companion object {
         const val SIZE = 64
-        private val EMPTY_INTS = ArrayList<Int>(0)
+        private val EMPTY_INTS = setOf<Int>()
 
         /**
          *
@@ -46,9 +48,9 @@ open class Board(private val _fields: IntArray = IntArray(SIZE)) {
         return if (index in 0 until SIZE) _fields[index] else -1
     }
 
-    fun getOpponentTokens(index: Int, color: Int, opponentColor: Int): Collection<Int>
+    fun getOpponentTokens(index: Int, color: Int, opponentColor: Int): Set<Int>
     {
-        val tokens = ArrayList<Int>()
+        val tokens = TreeSet<Int>()
         val x = index % 8
         val y = index / 8
         tokens.addAll(iterate(x, y, 1, 0, color, opponentColor))
@@ -62,9 +64,9 @@ open class Board(private val _fields: IntArray = IntArray(SIZE)) {
         return tokens
     }
 
-    private fun iterate(x: Int, y: Int, dx: Int, dy: Int, color: Int, opponentColor: Int): Collection<Int>
+    private fun iterate(x: Int, y: Int, dx: Int, dy: Int, color: Int, opponentColor: Int): Set<Int>
     {
-        val fields = ArrayList<Int>()
+        val fields = TreeSet<Int>()
         var ix = x + dx
         var iy = y + dy
         var i = index(ix, iy)

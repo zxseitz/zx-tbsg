@@ -57,7 +57,6 @@ class ReversiTest {
         fields.forEach { i -> every { board[i] } returns fields[i] }
         every { actionBlack.index } returns indexBlack
         every { board.fields } returns fields
-        every { board.getOpponentTokens(any(), any(), any()) } returns setOf()
         every { board.getOpponentTokens(indexNextWhite, 2, 1) } returns actionsNextWhite
         every { actions[actionBlack] } returns actionsBlack
         every { actions[capture(actionWhiteSlot)] = capture(actionsNextWhiteSlot) } answers {}
