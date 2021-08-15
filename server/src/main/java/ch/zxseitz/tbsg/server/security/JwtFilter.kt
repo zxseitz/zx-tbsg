@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
-class JwtFilter @Autowired constructor(private val jwtUtils: JwtUtils) : OncePerRequestFilter() {
+open class JwtFilter @Autowired constructor(private val jwtUtils: JwtUtils) : OncePerRequestFilter() {
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
         val header = request.getHeader("Authorization")
         if (header != null && header.startsWith("Bearer ")) {

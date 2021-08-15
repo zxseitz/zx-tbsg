@@ -1,6 +1,7 @@
 package ch.zxseitz.tbsg.server.repo.mongo
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.MongoCredential
@@ -15,7 +16,7 @@ import java.nio.file.Paths
 
 @Configuration
 open class MongoConfig(@Value("\${app.db.mongo.config}") private val configPath: String) {
-    private data class MongoProperties(
+    data class MongoProperties(
         val url: String,
         val name: String,
         val auth_scheme: String,
@@ -28,8 +29,8 @@ open class MongoConfig(@Value("\${app.db.mongo.config}") private val configPath:
     private val properties: MongoProperties
 
     init {
-        val mapper = ObjectMapper()
-        this.properties = mapper.readValue(Paths.get(configPath).toFile(), MongoProperties::class.java)
+        val mapper = jacksonObjectMapper()
+        this.properties = mapper.readValue(Paths.get(configPath).toFile())
     }
 
     @Bean

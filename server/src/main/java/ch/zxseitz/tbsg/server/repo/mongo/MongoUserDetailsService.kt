@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service("mongo_us")
-class MongoUserDetailsService @Autowired constructor(
+open class MongoUserDetailsService @Autowired constructor(
     @Qualifier("mongodb") private val userRepository: IUserRepository
 ) : UserDetailsService {
     override fun loadUserByUsername(username: String): UserDetails {

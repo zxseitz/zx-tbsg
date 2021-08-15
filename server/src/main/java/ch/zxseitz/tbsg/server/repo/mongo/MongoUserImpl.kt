@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Repository
 
 @Repository("mongodb")
-class MongoUserImpl @Autowired constructor(private val mongoTemplate: MongoTemplate) : IUserRepository {
+open class MongoUserImpl @Autowired constructor(private val mongoTemplate: MongoTemplate) : IUserRepository {
     override fun insert(user: User) {
         mongoTemplate.insert(user)
     }

@@ -5,7 +5,7 @@ import ch.zxseitz.tbsg.server.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-class UserDetailsImpl(
+open class UserDetailsImpl(
     private val _username: String,
     private val _password: String,
     private val _authorities: List<GrantedAuthority>
