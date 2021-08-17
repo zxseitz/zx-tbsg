@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test
 class GameSocketHandlerTest {
     @MockK(relaxed = true)
     private lateinit var proxy: GameProxy
+    @MockK(relaxed = true)
+    private lateinit var clients: Lobby
 
     init {
         MockKAnnotations.init(this)
@@ -34,20 +36,22 @@ class GameSocketHandlerTest {
         val clientId = "clientId"
         val clientMessage = "client message"
         val session = mockkClass(WebSocketSession::class, relaxed = true)
-
+        val clientSlot = slot<Client>()
+        every { session.id } returns clientId
         mockkStatic(::createIdMessage)
         every { createIdMessage(any()) } returns clientMessage
-
         mockkConstructor(Client::class)
-        every { anyConstructed<Client>().send(any()) } answers {}
+        every { anyConstructed<Client>().id } returns clientId
+        every { anyConstructed<Client>().send(any()) } just runs
+        every { clients.add(capture(clientSlot)) } returns true
 
-        val handler = GameSocketHandler(proxy)
+        val handler = GameSocketHandler(proxy, clients)
         handler.afterConnectionEstablished(session)
 
-        // TODO verify lobby
         verify(exactly = 1) {
             anyConstructed<Client>().send(clientMessage)
         }
+        assertEquals(clientId, clientSlot.captured.id)
     }
 
 //    @Test
@@ -58,8 +62,8 @@ class GameSocketHandlerTest {
 //        val session = mock(WebSocketSession::class.java)
 //        doReturn(clientId).`when`(session).id
 ////            doReturn(client).`when`(lobby).remove(clientId)
-//        val handler = GameSocketHandler(proxy)
 //
+//        val handler = GameSocketHandler(proxy)
 //        handler.afterConnectionClosed(session, CloseStatus.NORMAL)
 //
 //        verify(lobby, times(1)).remove(clientId)

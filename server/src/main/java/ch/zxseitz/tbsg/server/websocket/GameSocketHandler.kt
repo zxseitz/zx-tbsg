@@ -2,13 +2,11 @@ package ch.zxseitz.tbsg.server.websocket
 
 import ch.zxseitz.tbsg.TbsgException
 import ch.zxseitz.tbsg.games.GameState
-import ch.zxseitz.tbsg.games.IGame
 import ch.zxseitz.tbsg.games.exceptions.ClientException
 import ch.zxseitz.tbsg.games.exceptions.GameException
 import ch.zxseitz.tbsg.server.games.GameManager
 import ch.zxseitz.tbsg.server.games.GameProxy
 
-import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Collectors
 
 import org.slf4j.Logger
@@ -19,9 +17,8 @@ import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
 import java.util.*
 
-class GameSocketHandler(private val proxy: GameProxy): TextWebSocketHandler() {
+class GameSocketHandler(private val proxy: GameProxy, private val clients: Lobby): TextWebSocketHandler() {
     private val logger: Logger = LoggerFactory.getLogger(GameSocketHandler::class.java.name + ":" + proxy.name)
-    private val clients: MutableMap<String, Client> = ConcurrentHashMap()
 
     /**
      * Performs a critical section on several locks
@@ -50,7 +47,7 @@ class GameSocketHandler(private val proxy: GameProxy): TextWebSocketHandler() {
         logger.info("Connected client: ${session.id}")
         // todo: read auth infos
         val client = Client(session)
-        clients[session.id] = client
+        clients.add(client)
         sendToClient(client, createIdMessage(client))
     }
 

@@ -25,8 +25,9 @@ open class WebSocketConfig @Autowired constructor(
 
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
         gameManager.foreachGame { proxy ->
+            val clients = Lobby()
             val path = "/socket/v1/games/${proxy.name}"
-            registry.addHandler(GameSocketHandler(proxy), path)
+            registry.addHandler(GameSocketHandler(proxy, clients), path)
                 .setAllowedOrigins("*")  // handles unexpected response code 403
                 .addInterceptors(object : HttpSessionHandshakeInterceptor() {
                     override fun afterHandshake(
